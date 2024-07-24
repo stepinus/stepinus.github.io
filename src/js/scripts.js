@@ -137,14 +137,15 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 const params = {
-    red: 1.0,
-    green: 1.0,
-    blue: 1.0,
-    threshold: 0.5,
-    strength: 0.5,
-    radius: 0.8,
-    segments: 80 // начальное значение
-  };
+  red: 1.0,
+  green: 1.0,
+  blue: 1.0,
+  threshold: 0.5,
+  strength: 0.5,
+  radius: 0.8,
+  segments: 80, // начальное значение
+  audioSource: "file", // 'file' или 'microphone'
+};
 
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -163,7 +164,6 @@ bloomComposer.addPass(bloomPass);
 
 const outputPass = new OutputPass();
 bloomComposer.addPass(outputPass);
-
 
 camera.position.set(0, -2, 14);
 camera.lookAt(0, 0, 0);
@@ -191,7 +191,14 @@ const mat = new THREE.ShaderMaterial({
   wireframe: true,
 });
 
-const geo = new THREE.BoxGeometry(4, 4, 4, params.segments, params.segments, params.segments);
+const geo = new THREE.BoxGeometry(
+  4,
+  4,
+  4,
+  params.segments,
+  params.segments,
+  params.segments
+);
 const mesh = new THREE.Mesh(geo, mat);
 scene.add(mesh);
 mesh.material.wireframe = true;
@@ -212,39 +219,89 @@ directionalLight.castShadow = true;
 mesh.castShadow = true;
 mesh.receiveShadow = true;
 
+// const listener = new THREE.AudioListener();
+// camera.add(listener);
+
+// const sound = new THREE.Audio(listener);
+
+// const audioLoader = new THREE.AudioLoader();
+// audioLoader.load("./assets/Beats.mp3", function (buffer) {
+//   sound.setBuffer(buffer);
+//   window.addEventListener("click", function () {
+//     sound.play();
+//   });
+// });
+const audioStatus = document.getElementById("audioStatus");
 const listener = new THREE.AudioListener();
 camera.add(listener);
 
 const sound = new THREE.Audio(listener);
 
 const audioLoader = new THREE.AudioLoader();
-audioLoader.load("./assets/Beats.mp3", function (buffer) {
-  sound.setBuffer(buffer);
-  window.addEventListener("click", function () {
-    sound.play();
-  });
-});
-
-const analyser = new THREE.AudioAnalyser(sound, 32);
-function updateGeometry(segments) {
-    const newGeo = new THREE.BoxGeometry(4, 4, 4, segments, segments, segments);
-    mesh.geometry.dispose();
-    mesh.geometry = newGeo;
+function updateAudioStatus(status) {
+  audioStatus.textContent = "Audio Status: " + status;
+}
+audioLoader.load(
+  "./assets/Beats.mp3",
+  // onLoad callback
+  function (buffer) {
+    sound.setBuffer(buffer);
+    updateAudioStatus("File loaded. Click to play!");
+    audioStatus.style.backgroundColor = "rgba(0, 128, 0, 0.7)"; // Green background
+    audioStatus.addEventListener("click", function () {
+      if (params.audioSource === "file") {
+        if (!sound.isPlaying) {
+          sound.play();
+          updateAudioStatus("playing file, click for pause");
+        } else {
+          sound.pause();
+          updateAudioStatus("File paused. Click to resume.");
+        }
+      }
+    });
+  },
+  // onProgress callback
+  function (xhr) {
+    audioStatus.textContent = `Audio Status: Loading... ${Math.round(
+      (xhr.loaded / xhr.total) * 100
+    )}%`;
+  },
+  // onError callback
+  function (err) {
+    console.error("An error occurred while loading audio:", err);
+    audioStatus.textContent = "Audio Status: Error loading audio";
+    audioStatus.style.backgroundColor = "rgba(255, 0, 0, 0.7)"; // Red background
   }
+);
+let currentAnalyser;
+let microphone;
+let microphoneAnalyser;
+
+function setupMicrophone() {
+  return navigator.mediaDevices
+    .getUserMedia({ audio: true, video: false })
+    .then(function (stream) {
+      microphone = new THREE.Audio(listener);
+      microphone.setMediaStreamSource(stream);
+      microphoneAnalyser = new THREE.AudioAnalyser(microphone, 32);
+      return microphoneAnalyser;
+    })
+    .catch(function (err) {
+      console.error("Ошибка при получении доступа к микрофону:", err);
+    });
+}
+const analyser = new THREE.AudioAnalyser(sound, 32);
+currentAnalyser = analyser;
+function updateGeometry(segments) {
+  const newGeo = new THREE.BoxGeometry(4, 4, 4, segments, segments, segments);
+  mesh.geometry.dispose();
+  mesh.geometry = newGeo;
+}
 const gui = new GUI();
 const colorFolder = gui.addFolder("Colors");
 colorFolder.addColor(uniforms.u_baseColor, "value").name("Base Color");
 colorFolder.addColor(uniforms.u_waveColor, "value").name("Wave Color");
 colorFolder.add(uniforms.u_frequency, "value", 0, 30).name("Wave Intensity");
-// colorFolder.add(params, "red", 0, 1).onChange(function (value) {
-//   uniforms.u_red.value = Number(value);
-// });
-// colorFolder.add(params, "green", 0, 1).onChange(function (value) {
-//   uniforms.u_green.value = Number(value);
-// });
-// colorFolder.add(params, "blue", 0, 1).onChange(function (value) {
-//   uniforms.u_blue.value = Number(value);
-// });
 const bloomFolder = gui.addFolder("Bloom");
 bloomFolder.add(params, "threshold", 0, 1).onChange(function (value) {
   bloomPass.threshold = Number(value);
@@ -259,6 +316,31 @@ const geometryFolder = gui.addFolder("Geometry");
 geometryFolder.add(params, "segments", 10, 200).onChange(function (value) {
   updateGeometry(value);
 });
+const audioFolder = gui.addFolder("Audio");
+audioFolder
+  .add(params, "audioSource", ["file", "microphone"])
+  .name("Audio Source")
+  .onChange(function (value) {
+    if (value === "file") {
+      currentAnalyser = analyser;
+      if (microphone) {
+        microphone.disconnect();
+      }
+      if (!sound.isPlaying) {
+        updateAudioStatus("File loaded. Click to play!");
+      } else {
+        updateAudioStatus("playing file, click for pause");
+      }
+    } else {
+      if (sound.isPlaying) {
+        sound.stop(); // Останавливаем воспроизведение файла
+      }
+      setupMicrophone().then(function (micAnalyser) {
+        currentAnalyser = micAnalyser;
+        updateAudioStatus("Using microphone");
+      });
+    }
+  });
 
 let mouseX = 0;
 let mouseY = 0;
@@ -270,23 +352,37 @@ document.addEventListener("mousemove", function (e) {
 });
 
 const clock = new THREE.Clock();
-function animate() {
-    camera.position.x += (mouseX - camera.position.x) * 0.05;
-    camera.position.y += (-mouseY - camera.position.y) * 0.5;
-    camera.lookAt(scene.position);
-  
-    uniforms.u_time.value = clock.getElapsedTime();
-    uniforms.u_frequency.value = analyser.getAverageFrequency();
-  
-    // Добавляем вращение куба
-    mesh.rotation.x += 0.005;
-    mesh.rotation.y += 0.005;
-  
-    bloomComposer.render();
-    requestAnimationFrame(animate);
-  }
-  animate()
+// function animate() {
+//   camera.position.x += (mouseX - camera.position.x) * 0.05;
+//   camera.position.y += (-mouseY - camera.position.y) * 0.5;
+//   camera.lookAt(scene.position);
 
+//   uniforms.u_time.value = clock.getElapsedTime();
+//   uniforms.u_frequency.value = analyser.getAverageFrequency();
+
+//   // Добавляем вращение куба
+//   mesh.rotation.x += 0.005;
+//   mesh.rotation.y += 0.005;
+
+//   bloomComposer.render();
+//   requestAnimationFrame(animate);
+// }
+// animate();
+function animate() {
+  camera.position.x += (mouseX - camera.position.x) * 0.05;
+  camera.position.y += (-mouseY - camera.position.y) * 0.5;
+  camera.lookAt(scene.position);
+
+  uniforms.u_time.value = clock.getElapsedTime();
+  uniforms.u_frequency.value = currentAnalyser.getAverageFrequency();
+
+  mesh.rotation.x += 0.005;
+  mesh.rotation.y += 0.005;
+
+  bloomComposer.render();
+  requestAnimationFrame(animate);
+}
+animate();
 window.addEventListener("resize", function () {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
