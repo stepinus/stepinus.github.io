@@ -327,7 +327,7 @@ audioFolder
         microphone.disconnect();
       }
       if (!sound.isPlaying) {
-        updateAudioStatus("File loaded. Click to play!");
+        updateAudioStatus("File loaded. Click here to play!");
       } else {
         updateAudioStatus("playing file, click for pause");
       }
