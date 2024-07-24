@@ -143,7 +143,7 @@ const params = {
   threshold: 0.5,
   strength: 0.5,
   radius: 0.8,
-  segments: 80, // начальное значение
+  segments: 20, // начальное значение
   audioSource: "file", // 'file' или 'microphone'
 };
 
