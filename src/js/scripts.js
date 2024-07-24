@@ -137,13 +137,14 @@ const camera = new THREE.PerspectiveCamera(
 );
 
 const params = {
-  red: 1.0,
-  green: 1.0,
-  blue: 1.0,
-  threshold: 0.5,
-  strength: 0.5,
-  radius: 0.8,
-};
+    red: 1.0,
+    green: 1.0,
+    blue: 1.0,
+    threshold: 0.5,
+    strength: 0.5,
+    radius: 0.8,
+    segments: 80 // начальное значение
+  };
 
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 
@@ -190,7 +191,7 @@ const mat = new THREE.ShaderMaterial({
   wireframe: true,
 });
 
-const geo = new THREE.BoxGeometry(4, 4, 4, 80, 80, 80);
+const geo = new THREE.BoxGeometry(4, 4, 4, params.segments, params.segments, params.segments);
 const mesh = new THREE.Mesh(geo, mat);
 scene.add(mesh);
 mesh.material.wireframe = true;
@@ -225,22 +226,25 @@ audioLoader.load("./assets/Beats.mp3", function (buffer) {
 });
 
 const analyser = new THREE.AudioAnalyser(sound, 32);
-
+function updateGeometry(segments) {
+    const newGeo = new THREE.BoxGeometry(4, 4, 4, segments, segments, segments);
+    mesh.geometry.dispose();
+    mesh.geometry = newGeo;
+  }
 const gui = new GUI();
 const colorFolder = gui.addFolder("Colors");
 colorFolder.addColor(uniforms.u_baseColor, "value").name("Base Color");
 colorFolder.addColor(uniforms.u_waveColor, "value").name("Wave Color");
 colorFolder.add(uniforms.u_frequency, "value", 0, 30).name("Wave Intensity");
-colorFolder.add(params, "red", 0, 1).onChange(function (value) {
-  uniforms.u_red.value = Number(value);
-});
-colorFolder.add(params, "green", 0, 1).onChange(function (value) {
-  uniforms.u_green.value = Number(value);
-});
-colorFolder.add(params, "blue", 0, 1).onChange(function (value) {
-  uniforms.u_blue.value = Number(value);
-});
-
+// colorFolder.add(params, "red", 0, 1).onChange(function (value) {
+//   uniforms.u_red.value = Number(value);
+// });
+// colorFolder.add(params, "green", 0, 1).onChange(function (value) {
+//   uniforms.u_green.value = Number(value);
+// });
+// colorFolder.add(params, "blue", 0, 1).onChange(function (value) {
+//   uniforms.u_blue.value = Number(value);
+// });
 const bloomFolder = gui.addFolder("Bloom");
 bloomFolder.add(params, "threshold", 0, 1).onChange(function (value) {
   bloomPass.threshold = Number(value);
@@ -250,6 +254,10 @@ bloomFolder.add(params, "strength", 0, 3).onChange(function (value) {
 });
 bloomFolder.add(params, "radius", 0, 1).onChange(function (value) {
   bloomPass.radius = Number(value);
+});
+const geometryFolder = gui.addFolder("Geometry");
+geometryFolder.add(params, "segments", 10, 200).onChange(function (value) {
+  updateGeometry(value);
 });
 
 let mouseX = 0;
