@@ -10,7 +10,7 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 const LumaBlurShader = {
   uniforms: {
     tDiffuse: { value: null },
-    intensity: { value: 0.5 },
+    intensity: { value: 0.05 },
   },
   vertexShader: `
       varying vec2 vUv;
