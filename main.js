@@ -28,18 +28,18 @@ const controls = new OrbitControls(camera, renderer.domElement);
 camera.position.z = 5;
 
 const size = 2;
-let segments = 20;
+let segments = 30;
 
 const settings = {
   segments: segments,
   particleSize: 0.05,
-  deformIntensity: 0.2,
+  deformIntensity: 0.6,
   deformFrequency: 0.5,
   deformAmplitude: 0.5,
-  deformSpeed: 1,
-  waveScale: 0.5,
-  waveSpeed: 0.1,
-  waveSizeScale: 0.1,
+  deformSpeed: 0.5,
+  waveScale: 0.8,
+  waveSpeed: 0.7,
+  waveSizeScale: 0.36,
   ...ruptureSettings,
   updateGeometry: function () {
     updateCube();

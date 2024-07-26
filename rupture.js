@@ -7,7 +7,7 @@ export const ruptureSettings = {
   ruptureX: 0,
   ruptureY: 0,
   ruptureZ: 1,
-  ruptureRadius: 0.5,
+  ruptureRadius: 0,
   ruptureStrength: 0.5,
   ruptureRoughness: 0.2,
   ruptureFrequency: 1,
@@ -20,16 +20,16 @@ export function addRuptureControls(gui, settings) {
   ruptureFolder.add(settings, "ruptureZ", -1, 1, 0.01).name("Rupture Z");
   ruptureFolder
     .add(settings, "ruptureRadius", 0, 1, 0.01)
-    .name("Rupture Radius");
+    .name("R_Radius");
   ruptureFolder
     .add(settings, "ruptureStrength", 0, 1, 0.01)
-    .name("Rupture Strength");
+    .name("R_Strength");
   ruptureFolder
     .add(settings, "ruptureRoughness", 0, 1, 0.01)
-    .name("Rupture Roughness");
+    .name("R_Roughness");
   ruptureFolder
     .add(settings, "ruptureFrequency", 0, 5, 0.1)
-    .name("Rupture Frequency");
+    .name("R_Frequency");
 }
 
 export function createRupture(geometry, deformedPositions, center, radius, strength, roughness, frequency) {
