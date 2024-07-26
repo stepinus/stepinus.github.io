@@ -7,6 +7,7 @@ import deformGeometry from "./deformGeometry";
 import applyParticleWaveAnimation from "./applyParticleWaveAnimation";
 import { vertexShader, fragmentShader } from "./shaders";
 import { ruptureSettings, addRuptureControls, createRupture, updateLines } from "./rupture";
+import spark from './assets/spark1.png'
 
 let originalParticlePositions, originalLinePositions;
 let deformedParticlePositions, deformedLinePositions;
@@ -63,7 +64,7 @@ let particleSystem, lineSegments;
 
 // Загрузка текстуры
 const textureLoader = new THREE.TextureLoader();
-const sparkTexture = textureLoader.load("assets/spark1.png");
+const sparkTexture = textureLoader.load(spark);
 
 function updateParticleSize() {
   if (particleSystem) {
