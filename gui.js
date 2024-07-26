@@ -25,5 +25,10 @@ export default function init(settings, updateCube, updateParticleSize, bloomPass
   bloomFolder.add(settings, 'b_threshold', 0, 1).name('Threshold').onChange(() => {
     bloomPass.threshold = settings.b_threshold;
   });
+  const colorWaveFolder = gui.addFolder('Color Wave');
+  colorWaveFolder.add(settings, 'colorWaveSpeed', 0.1, 1).name('Speed');
+  colorWaveFolder.add(settings, 'colorWaveWidth', 0.01, 0.5).name('Width');
+  colorWaveFolder.add(settings, 'colorWaveDirection', { 'Clockwise': 1, 'Counter-clockwise': -1 }).name('Direction');
+  colorWaveFolder.open();
   addRuptureControls(gui, settings);
 }

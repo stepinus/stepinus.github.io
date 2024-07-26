@@ -4,15 +4,11 @@ import createCubePositions from "./createCubePositions";
 import windowResizelistener from "./windowResizelistener";
 import deformGeometry from "./deformGeometry";
 import applyParticleWaveAnimation from "./applyParticleWaveAnimation";
-import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { vertexShader, fragmentShader } from "./shaders";
-import {
-  ruptureSettings,
-  createRupture,
-  updateLines,
-} from "./rupture";
+import { ruptureSettings, createRupture, updateLines } from "./rupture";
 import spark from "./assets/spark1.png";
 import initGui from "./gui";
 
@@ -48,9 +44,12 @@ const settings = {
   waveScale: 0.8,
   waveSpeed: 0.7,
   waveSizeScale: 0.36,
+  colorWaveSpeed: 0.2,
+  colorWaveWidth: 0.1,
+  colorWaveDirection: 1,
   b_radius: 0.5,
   b_strength: 0.5,
-  b_threshold: 0.,
+  b_threshold: 0,
   ...ruptureSettings,
   updateGeometry: function () {
     updateCube();
@@ -149,7 +148,6 @@ function animate() {
   requestAnimationFrame(animate);
 
   time += 0.01 * settings.deformSpeed;
-
   if (particleSystem && lineSegments) {
     // Применяем деформацию
     deformedParticlePositions = deformGeometry(
@@ -189,7 +187,7 @@ function animate() {
       settings.ruptureFrequency
     );
     updateLines(lineSegments.geometry, removedLinePoints);
-    // Новая анимация волн (если она все еще нужна)
+
     applyParticleWaveAnimation(
       particleSystem,
       time,
@@ -208,7 +206,6 @@ function animate() {
   controls.update();
   //renderer.render(scene, camera);
   composer.render();
-
 }
 
 animate();
