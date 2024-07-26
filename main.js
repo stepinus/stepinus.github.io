@@ -1,13 +1,20 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import * as dat from "dat.gui";
 import createCubePositions from "./createCubePositions";
 import windowResizelistener from "./windowResizelistener";
 import deformGeometry from "./deformGeometry";
 import applyParticleWaveAnimation from "./applyParticleWaveAnimation";
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { vertexShader, fragmentShader } from "./shaders";
-import { ruptureSettings, addRuptureControls, createRupture, updateLines } from "./rupture";
-import spark from './assets/spark1.png'
+import {
+  ruptureSettings,
+  createRupture,
+  updateLines,
+} from "./rupture";
+import spark from "./assets/spark1.png";
+import initGui from "./gui";
 
 let originalParticlePositions, originalLinePositions;
 let deformedParticlePositions, deformedLinePositions;
@@ -41,24 +48,31 @@ const settings = {
   waveScale: 0.8,
   waveSpeed: 0.7,
   waveSizeScale: 0.36,
+  b_radius: 0.5,
+  b_strength: 0.5,
+  b_threshold: 0.,
   ...ruptureSettings,
   updateGeometry: function () {
     updateCube();
   },
 };
+let composer;
+const bloomPass = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  settings.b_strength,
+  settings.b_radius,
+  settings.b_threshold
+);
 
-const gui = new dat.GUI();
-gui.add(settings, "segments", 2, 70, 1).onChange(updateCube);
-gui.add(settings, "particleSize", 0.01, 0.5, 0.01).onChange(updateParticleSize);
-gui.add(settings, "updateGeometry");
-gui.add(settings, "deformIntensity", 0, 1, 0.01).name("D_Intensity");
-gui.add(settings, "deformFrequency", 0, 2, 0.01).name("D_Frequency");
-gui.add(settings, "deformAmplitude", 0, 1, 0.01).name("D_Amplitude");
-gui.add(settings, "deformSpeed", 0, 5, 0.1).name("Deform Speed");
-gui.add(settings, "waveScale", 0.1, 2, 0.1).name("Wave Scale");
-gui.add(settings, "waveSpeed", 0, 1, 0.01).name("Wave Speed");
-gui.add(settings, "waveSizeScale", 0, 0.5, 0.01).name("Wave Size Scale");
-addRuptureControls(gui, settings);
+function setupComposer() {
+  composer = new EffectComposer(renderer);
+  const renderPass = new RenderPass(scene, camera);
+  composer.addPass(renderPass);
+  composer.addPass(bloomPass);
+}
+
+setupComposer();
+initGui(settings, updateCube, updateParticleSize, bloomPass);
 
 let particleSystem, lineSegments;
 
@@ -82,7 +96,7 @@ function updateCube() {
   scene.remove(lineSegments);
 
   const { particles, lines } = createCubePositions(size, segments);
- 
+
   const particlesGeometry = new THREE.BufferGeometry();
   particlesGeometry.setAttribute(
     "position",
@@ -121,16 +135,16 @@ function updateCube() {
 
   lineSegments = new THREE.LineSegments(linesGeometry, linesMaterial);
   scene.add(lineSegments);
-  originalParticlePositions = particleSystem.geometry.attributes.position.array.slice();
-  originalLinePositions = lineSegments.geometry.attributes.position.array.slice();
+  originalParticlePositions =
+    particleSystem.geometry.attributes.position.array.slice();
+  originalLinePositions =
+    lineSegments.geometry.attributes.position.array.slice();
 }
 
 updateCube();
 
 let time = 0;
 
-let rupturedParticlePoints = new Set();
-let rupturedLinePoints = new Set();
 function animate() {
   requestAnimationFrame(animate);
 
@@ -145,7 +159,7 @@ function animate() {
       settings.deformFrequency,
       settings.deformAmplitude
     );
-    
+
     deformedLinePositions = deformGeometry(
       originalLinePositions,
       time,
@@ -192,9 +206,11 @@ function animate() {
   }
 
   controls.update();
-  renderer.render(scene, camera);
+  //renderer.render(scene, camera);
+  composer.render();
+
 }
 
 animate();
 
-windowResizelistener(camera, renderer);
+windowResizelistener(camera, renderer, composer);
