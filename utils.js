@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 export const createCamera = (aspect) => {
   const camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
-  camera.position.z = 5;
+  camera.position.z = 2;
   return camera;
 };
 
@@ -18,21 +18,25 @@ export const createControls = (camera, domElement) => {
 
 export const createSettings = (segments, updateCube) => ({
   segments: segments,
-  particleSize: 0.05,
-  deformIntensity: 0.6,
-  deformFrequency: 0.5,
-  deformAmplitude: 0.5,
-  deformSpeed: 0.5,
-  waveScale: 0.8,
-  waveSpeed: 0.7,
-  waveSizeScale: 0.36,
-  colorWaveSpeed: 0.2,
-  colorWaveWidth: 0.1,
-  colorWaveDirection: 1,
-  b_radius: 0.5,
-  b_strength: 0.5,
-  b_threshold: 0,
+  particleSize: 0.02,
+  deformIntensity: 1.0,
+  deformFrequency: 1.0,
+  deformAmplitude: 0.1,
+  deformSpeed: 1.0,
+  waveSpeed: 1.0,
   isDeformActive: true,
+  // Настройки для анимации размера
+  isWaveSizeActive: true,
+  waveScale: 1.0,
+  waveSizeScale: 0.02,
+  //цвет
+  waveColor: [0, 0, 1],
+  baseColor: [1, 1, 1],
+  //bloom
+  bloomStrength: 0.01,
+  bloomRadius: 0.4,
+  bloomThreshold: 0.85,
+  brightness:0.8,
   updateGeometry: function () {
     updateCube();
   },

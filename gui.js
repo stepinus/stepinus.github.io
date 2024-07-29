@@ -1,6 +1,11 @@
 import * as dat from "dat.gui";
 
-export default function init(settings, updateCube, updateParticleSize) {
+export default function init(
+  settings,
+  updateCube,
+  updateParticleSize,
+  updateBloom
+) {
   const gui = new dat.GUI();
   gui.add(settings, "segments", 5, 50).step(1).onChange(updateCube);
   gui.add(settings, "particleSize", 0.01, 0.1).onChange(() => {
@@ -8,13 +13,63 @@ export default function init(settings, updateCube, updateParticleSize) {
     updateCube();
   });
   gui.add(settings, "updateGeometry");
+  const deformFolder = gui.addFolder("Deformation");
+  deformFolder
+    .add(settings, "isDeformActive")
+    .name("Active")
+    .onChange(updateCube);
+  deformFolder
+    .add(settings, "deformIntensity", 0, 2)
+    .name("Intensity")
+    .onChange(updateCube);
+  deformFolder
+    .add(settings, "deformFrequency", 0, 2)
+    .name("Frequency")
+    .onChange(updateCube);
+  deformFolder
+    .add(settings, "deformAmplitude", 0, 1)
+    .name("Amplitude")
+    .onChange(updateCube);
+  deformFolder
+    .add(settings, "deformSpeed", 0, 2)
+    .name("Speed")
+    .onChange(updateCube);
 
-  gui.add(settings, "deformIntensity", 0, 1, 0.01).name("D_Intensity");
-  gui.add(settings, "deformFrequency", 0, 2, 0.01).name("D_Frequency");
-  gui.add(settings, "deformAmplitude", 0, 1, 0.01).name("D_Amplitude");
-  gui.add(settings, "deformSpeed", 0, 5, 0.1).name("Deform Speed");
+  // Папка для настроек анимации размера
+  const sizeFolder = gui.addFolder("Size Animation");
+  sizeFolder
+    .add(settings, "isWaveSizeActive")
+    .name("Active")
+    .onChange(updateCube);
+  sizeFolder
+    .add(settings, "waveScale", 0.1, 10)
+    .name("Scale")
+    .onChange(updateCube);
+  sizeFolder
+    .add(settings, "waveSpeed", 0.05, 5)
+    .name("Speed")
+    .onChange(updateCube);
+  sizeFolder
+    .add(settings, "waveSizeScale", 0.01, 1)
+    .name("Size Scale")
+    .onChange(updateCube);
+  // Общие настройки
+  gui
+    .addColor(settings, "waveColor")
+    .name("Wave Color")
+    .onChange(() => {
+      updateCube();
+    });
+  gui
+    .addColor(settings, "baseColor")
+    .name("Base Color")
+    .onChange(() => {
+      updateCube();
+    });
+  const bloomFolder = gui.addFolder("Bloom");
+  bloomFolder.add(settings, "bloomStrength", 0, 3).onChange(updateBloom);
+  bloomFolder.add(settings, "bloomRadius", 0, 1).onChange(updateBloom);
+  bloomFolder.add(settings, "bloomThreshold", 0, 1).onChange(updateBloom);
+  gui.add(settings, 'brightness', 0, 5).onChange(updateCube);
 
-  gui.add(settings, "waveScale", 0.1, 2, 0.1).name("Wave Scale");
-  gui.add(settings, "waveSpeed", 0, 1, 0.01).name("Wave Speed");
-  gui.add(settings, "waveSizeScale", 0, 0.5, 0.01).name("Wave Size Scale");
 }
