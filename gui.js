@@ -70,6 +70,6 @@ export default function init(
   bloomFolder.add(settings, "bloomStrength", 0, 3).onChange(updateBloom);
   bloomFolder.add(settings, "bloomRadius", 0, 1).onChange(updateBloom);
   bloomFolder.add(settings, "bloomThreshold", 0, 1).onChange(updateBloom);
-  gui.add(settings, 'brightness', 0, 5).onChange(updateCube);
+  gui.add(settings, 'brightness', 0.01, 1).onChange(updateCube);
 
 }
