@@ -1,5 +1,4 @@
 import { createNoise3D } from "simplex-noise";
-import * as THREE from "three";
 
 const noise3D = createNoise3D();
 

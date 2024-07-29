@@ -17,3 +17,4 @@ export const fragmentShader = `
     if (gl_FragColor.a < 0.3) discard;
   }
 `;
+

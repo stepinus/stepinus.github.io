@@ -1,83 +1,18 @@
 import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import createCubePositions from "./createCubePositions";
 import windowResizelistener from "./windowResizelistener";
-import deformGeometry from "./deformGeometry";
 import applyParticleWaveAnimation from "./applyParticleWaveAnimation";
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-import { vertexShader, fragmentShader } from "./shaders";
-import { ruptureSettings, createRupture, updateLines } from "./rupture";
 import spark from "./assets/spark1.png";
 import initGui from "./gui";
-
-let originalParticlePositions, originalLinePositions;
-let deformedParticlePositions, deformedLinePositions;
-let ruptureCenter = new THREE.Vector3();
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-
-camera.position.z = 5;
-
-const size = 2;
-let segments = 30;
-
-const settings = {
-  segments: segments,
-  particleSize: 0.05,
-  deformIntensity: 0.6,
-  deformFrequency: 0.5,
-  deformAmplitude: 0.5,
-  deformSpeed: 0.5,
-  waveScale: 0.8,
-  waveSpeed: 0.7,
-  waveSizeScale: 0.36,
-  colorWaveSpeed: 0.2,
-  colorWaveWidth: 0.1,
-  colorWaveDirection: 1,
-  b_radius: 0.5,
-  b_strength: 0.5,
-  b_threshold: 0,
-  ...ruptureSettings,
-  updateGeometry: function () {
-    updateCube();
-  },
-};
-let composer;
-const bloomPass = new UnrealBloomPass(
-  new THREE.Vector2(window.innerWidth, window.innerHeight),
-  settings.b_strength,
-  settings.b_radius,
-  settings.b_threshold
-);
-
-function setupComposer() {
-  composer = new EffectComposer(renderer);
-  const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
-  composer.addPass(bloomPass);
-}
-
-setupComposer();
-initGui(settings, updateCube, updateParticleSize, bloomPass);
-
-let particleSystem, lineSegments;
-
-// Загрузка текстуры
-const textureLoader = new THREE.TextureLoader();
-const sparkTexture = textureLoader.load(spark);
+import vertexShader from "./shaders/vertex.glsl";
+import fragmentShader from "./shaders/fragment.glsl";
+import {
+  createCamera,
+  createControls,
+  createCubeLines,
+  createCubePoints,
+  createRenderer,
+  createSettings,
+} from "./utils";
 
 function updateParticleSize() {
   if (particleSystem) {
@@ -90,124 +25,160 @@ function updateParticleSize() {
 }
 
 function updateCube() {
-  segments = settings.segments;
-  scene.remove(particleSystem);
-  scene.remove(lineSegments);
+  const geometry = new THREE.BufferGeometry();
+  const cubeSize = 1;
+  const segments = Math.round(settings.segments);
 
-  const { particles, lines } = createCubePositions(size, segments);
+  const {
+    particles,
+    sizes,
+    isPoint: pointIsPoint,
+  } = createCubePoints(segments, cubeSize, settings.particleSize);
+  const { lines, isPoint: lineIsPoint } = createCubeLines(segments, cubeSize);
 
-  const particlesGeometry = new THREE.BufferGeometry();
-  particlesGeometry.setAttribute(
+  // Объединяем частицы и линии в одну геометрию
+  geometry.setAttribute(
     "position",
-    new THREE.Float32BufferAttribute(particles, 3)
+    new THREE.Float32BufferAttribute([...particles, ...lines], 3)
+  );
+  geometry.setAttribute(
+    "size",
+    new THREE.Float32BufferAttribute(
+      [...sizes, ...new Array(lines.length / 3).fill(1)],
+      1
+    )
+  );
+  geometry.setAttribute(
+    "isPoint",
+    new THREE.Float32BufferAttribute([...pointIsPoint, ...lineIsPoint], 1)
   );
 
-  const sizes = new Float32Array(particles.length / 3);
-  sizes.fill(settings.particleSize);
-  particlesGeometry.setAttribute("size", new THREE.BufferAttribute(sizes, 1));
+  if (!particleSystem) {
+    // Создаем материал
+    const material = new THREE.ShaderMaterial({
+      uniforms: {
+        pointTexture: { value: sparkTexture },
+        time: { value: 0 },
+        intensity: { value: settings.deformIntensity },
+        frequency: { value: settings.deformFrequency },
+        amplitude: { value: settings.deformAmplitude },
+        isDeformActive: { value: settings.isDeformActive },
+      },
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      transparent: true,
+      depthWrite: false,
+    });
 
-  const particlesMaterial = new THREE.ShaderMaterial({
-    uniforms: {
-      pointTexture: { value: sparkTexture },
-    },
-    vertexShader: vertexShader,
-    fragmentShader: fragmentShader,
-    transparent: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
+    // Создаем систему частиц и линий
+    particleSystem = new THREE.Points(geometry, material);
+    lineSegments = new THREE.LineSegments(geometry, material);
 
-  particleSystem = new THREE.Points(particlesGeometry, particlesMaterial);
-  scene.add(particleSystem);
-
-  const linesGeometry = new THREE.BufferGeometry();
-  linesGeometry.setAttribute(
-    "position",
-    new THREE.Float32BufferAttribute(lines, 3)
-  );
-
-  const linesMaterial = new THREE.LineBasicMaterial({
-    color: 0xffffff,
-    transparent: true,
-    opacity: 0.5,
-  });
-
-  lineSegments = new THREE.LineSegments(linesGeometry, linesMaterial);
-  scene.add(lineSegments);
-  originalParticlePositions =
-    particleSystem.geometry.attributes.position.array.slice();
-  originalLinePositions =
-    lineSegments.geometry.attributes.position.array.slice();
-}
-
-updateCube();
-
-let time = 0;
-
-function animate() {
-  requestAnimationFrame(animate);
-
-  time += 0.01 * settings.deformSpeed;
-  if (particleSystem && lineSegments) {
-    // Применяем деформацию
-    deformedParticlePositions = deformGeometry(
-      originalParticlePositions,
-      time,
-      settings.deformIntensity,
-      settings.deformFrequency,
-      settings.deformAmplitude
-    );
-
-    deformedLinePositions = deformGeometry(
-      originalLinePositions,
-      time,
-      settings.deformIntensity,
-      settings.deformFrequency,
-      settings.deformAmplitude
-    );
-
-    // Применяем эффект разрыва
-    ruptureCenter.set(settings.ruptureX, settings.ruptureY, settings.ruptureZ);
-    const removedParticlePoints = createRupture(
-      particleSystem.geometry,
-      deformedParticlePositions,
-      ruptureCenter,
-      settings.ruptureRadius,
-      settings.ruptureStrength,
-      settings.ruptureRoughness,
-      settings.ruptureFrequency
-    );
-    const removedLinePoints = createRupture(
-      lineSegments.geometry,
-      deformedLinePositions,
-      ruptureCenter,
-      settings.ruptureRadius,
-      settings.ruptureStrength,
-      settings.ruptureRoughness,
-      settings.ruptureFrequency
-    );
-    updateLines(lineSegments.geometry, removedLinePoints);
-
-    applyParticleWaveAnimation(
-      particleSystem,
-      time,
-      settings.waveScale,
-      settings.waveSpeed,
-      settings.waveSizeScale,
-      settings
-    );
-
-    particleSystem.rotation.x += 0.002;
-    particleSystem.rotation.y += 0.002;
-    lineSegments.rotation.x += 0.002;
-    lineSegments.rotation.y += 0.002;
+    scene.add(particleSystem);
+    scene.add(lineSegments);
+  } else {
+    // Обновляем существующую геометрию
+    particleSystem.geometry.dispose();
+    particleSystem.geometry = geometry;
+    lineSegments.geometry.dispose();
+    lineSegments.geometry = geometry;
   }
 
-  controls.update();
-  //renderer.render(scene, camera);
-  composer.render();
+  // Обновляем униформы шейдера
+  particleSystem.material.uniforms.intensity.value = settings.deformIntensity;
+  particleSystem.material.uniforms.frequency.value = settings.deformFrequency;
+  particleSystem.material.uniforms.amplitude.value = settings.deformAmplitude;
+  particleSystem.material.uniforms.isDeformActive.value =
+    settings.isDeformActive;
+
+  lineSegments.material.uniforms.intensity.value = settings.deformIntensity;
+  lineSegments.material.uniforms.frequency.value = settings.deformFrequency;
+  lineSegments.material.uniforms.amplitude.value = settings.deformAmplitude;
+  lineSegments.material.uniforms.isDeformActive.value = settings.isDeformActive;
 }
 
-animate();
+const initScene = () => {
+  const scene = new THREE.Scene();
+  const camera = createCamera(window.innerWidth / window.innerHeight);
+  const renderer = createRenderer(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
 
-windowResizelistener(camera, renderer, composer);
+  const controls = createControls(camera, renderer.domElement, updateCube);
+
+  const settings = createSettings(30, updateCube);
+
+  const textureLoader = new THREE.TextureLoader();
+  const sparkTexture = textureLoader.load(spark);
+
+  return { scene, camera, renderer, controls, settings, sparkTexture };
+};
+
+let particleSystem, lineSegments;
+
+const updateShaderUniforms = (particleSystem, lineSegments, time, settings) => {
+  if (particleSystem && particleSystem.material.uniforms) {
+    particleSystem.material.uniforms.time.value = time;
+    particleSystem.material.uniforms.intensity.value = settings.deformIntensity;
+    particleSystem.material.uniforms.frequency.value = settings.deformFrequency;
+    particleSystem.material.uniforms.amplitude.value = settings.deformAmplitude;
+    particleSystem.material.uniforms.isDeformActive.value =
+      settings.isDeformActive;
+  }
+
+  if (lineSegments && lineSegments.material.uniforms) {
+    lineSegments.material.uniforms.time.value = time;
+    lineSegments.material.uniforms.intensity.value = settings.deformIntensity;
+    lineSegments.material.uniforms.frequency.value = settings.deformFrequency;
+    lineSegments.material.uniforms.amplitude.value = settings.deformAmplitude;
+    lineSegments.material.uniforms.isDeformActive.value =
+      settings.isDeformActive;
+  }
+};
+
+const animate = (scene, camera, renderer, controls, settings) => {
+  let time = 0;
+  let waveTime = 0;
+
+  const animationLoop = () => {
+    requestAnimationFrame(animationLoop);
+
+    time += 0.01 * settings.deformSpeed;
+    waveTime += 0.02 * settings.waveSpeed;
+    if (particleSystem && lineSegments) {
+      updateShaderUniforms(particleSystem, lineSegments, time, settings);
+      applyParticleWaveAnimation(
+        particleSystem,
+        waveTime,
+        settings.waveScale,
+        settings.waveSpeed,
+        settings.waveSizeScale,
+        settings
+      );
+
+      particleSystem.rotation.x += 0.002;
+      particleSystem.rotation.y += 0.002;
+      lineSegments.rotation.x += 0.002;
+      lineSegments.rotation.y += 0.002;
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+  };
+
+  animationLoop();
+};
+
+const { scene, camera, renderer, controls, settings, sparkTexture } =
+  initScene();
+
+// Создание начального куба
+updateCube();
+
+// Инициализация анимации
+animate(scene, camera, renderer, controls, settings);
+
+// Инициализация GUI
+initGui(settings, updateCube, updateParticleSize);
+
+// Добавление слушателя изменения размера окна
+windowResizelistener(camera, renderer);
