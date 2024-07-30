@@ -37,6 +37,7 @@ export const createSettings = (segments, updateCube) => ({
   bloomRadius: 0.4,
   bloomThreshold: 0.85,
   brightness:0.8,
+  lumaBlurIntensity: 0.05,
   updateGeometry: function () {
     updateCube();
   },

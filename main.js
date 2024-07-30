@@ -12,11 +12,79 @@ import {
   createRenderer,
   createSettings,
 } from "./utils";
-
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import loadTexs from "./loadTexs.js";
+import fogImg from "./assets/fog.png";
+import Fog from "./fog.js";
+const LumaBlurShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    intensity: { value: 0.05 },
+  },
+  vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+  fragmentShader: `
+      uniform sampler2D tDiffuse;
+      uniform float intensity;
+      varying vec2 vUv;
+      
+      void main() {
+        vec4 texel = texture2D(tDiffuse, vUv);
+        float luma = dot(texel.rgb, vec3(0.299, 0.587, 0.114));
+        vec2 offset = vec2(intensity / 300.0);
+        vec4 sum = texel * 0.5;
+        sum += texture2D(tDiffuse, vUv + vec2(-offset.x, -offset.y)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(0.0, -offset.y)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(offset.x, -offset.y)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(-offset.x, 0.0)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(offset.x, 0.0)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(-offset.x, offset.y)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(0.0, offset.y)) * 0.125;
+        sum += texture2D(tDiffuse, vUv + vec2(offset.x, offset.y)) * 0.125;
+        gl_FragColor = mix(texel, sum, luma * intensity);
+      }
+    `,
+};
+const FogBlendShader = {
+  uniforms: {
+    tDiffuse: { value: null },
+    tFog: { value: null },
+    fogIntensity: { value: 1.0 },
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    uniform sampler2D tDiffuse;
+    uniform sampler2D tFog;
+    uniform float fogIntensity;
+    varying vec2 vUv;
+    
+    void main() {
+      vec4 texel = texture2D(tDiffuse, vUv);
+      vec4 fogTexel = texture2D(tFog, vUv);
+      gl_FragColor = mix(texel, fogTexel, fogTexel.a * fogIntensity);
+    }
+  `,
+};
 
+const clock = new THREE.Clock();
+
+const lumaBlurPass = new ShaderPass(LumaBlurShader);
+lumaBlurPass.renderToScreen = true;
 function updateParticleSize() {
   if (particleSystem) {
     const sizes = particleSystem.geometry.attributes.size.array;
@@ -80,8 +148,11 @@ function updateCube() {
       },
       vertexShader: vertexShader,
       fragmentShader: fragmentShader,
-      transparent: true,
+      transparent: false,
       depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      opacity: 1.0,
+      color:settings.baseColor
     });
 
     // Создаем систему частиц и линий
@@ -117,41 +188,59 @@ function updateCube() {
 
 const initScene = () => {
   const scene = new THREE.Scene();
+  clock.start();
+
   const camera = createCamera(window.innerWidth / window.innerHeight);
   const renderer = createRenderer(window.innerWidth, window.innerHeight);
   document.body.appendChild(renderer.domElement);
-
   const controls = createControls(camera, renderer.domElement, updateCube);
 
   const settings = createSettings(30, updateCube);
 
   const textureLoader = new THREE.TextureLoader();
   const sparkTexture = textureLoader.load(spark);
+
   // Добавляем ambient light
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
   scene.add(ambientLight);
 
   // Добавляем directional light
   const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  // directionalLight.position.set(5, 5, 5);
   scene.add(directionalLight);
 
-  //effects
-  // Создаем EffectComposer
-  const composer = new EffectComposer(renderer);
-
-  // Добавляем RenderPass
+  // Создаем основной RenderPass
   const renderPass = new RenderPass(scene, camera);
-  composer.addPass(renderPass);
 
-  // Добавляем UnrealBloomPass
+  // Настраиваем BloomPass
   const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
     0.1, // сила
     0.4, // радиус
     0.85 // порог
   );
-  composer.addPass(bloomPass);
+  const fog = new Fog(renderer);
+
+  // Создаем BloomComposer
+  const bloomComposer = new EffectComposer(renderer);
+  bloomComposer.addPass(renderPass);
+  bloomComposer.addPass(bloomPass);
+
+  // Создаем FinalComposer
+  const finalComposer = new EffectComposer(renderer);
+  finalComposer.addPass(renderPass);
+
+  // Создаем и добавляем LumaBlurPass
+  const lumaBlurPass = new ShaderPass(LumaBlurShader);
+  finalComposer.addPass(lumaBlurPass);
+
+  // Создаем FogBlendPass (предполагая, что у вас есть этот шейдер)
+  const fogBlendPass = new ShaderPass(FogBlendShader);
+  finalComposer.addPass(fogBlendPass);
+
+  // Добавляем OutputPass
+  const outputPass = new OutputPass();
+  finalComposer.addPass(outputPass);
+
   return {
     scene,
     camera,
@@ -160,7 +249,11 @@ const initScene = () => {
     settings,
     sparkTexture,
     bloomPass,
-    composer,
+    bloomComposer,
+    finalComposer,
+    fogBlendPass,
+    lumaBlurPass,
+    fog,
   };
 };
 
@@ -216,7 +309,28 @@ const updateShaderUniforms = (particleSystem, lineSegments, time, settings) => {
     );
   }
 };
+const {
+  scene,
+  camera,
+  renderer,
+  controls,
+  settings,
+  sparkTexture,
+  bloomPass,
+  composer,
+  finalComposer,
+  bloomComposer,
+  fogBlendPass,
+  fog,
+} = initScene();
+const texsSrc = {
+  fog: fogImg,
+};
 
+loadTexs(texsSrc, (loadedTexs) => {
+  fog.createObj(loadedTexs.fog);
+  scene.add(fog.obj);
+});
 const animate = (scene, camera, renderer, controls, settings) => {
   let time = 0;
   const animationLoop = () => {
@@ -231,23 +345,32 @@ const animate = (scene, camera, renderer, controls, settings) => {
       lineSegments.rotation.y += 0.002;
     }
 
+    if (fog) {
+      fog.render(clock.getDelta());
+
+      // Обновляем текстуру в fogBlendPass
+      if (fogBlendPass && fogBlendPass.uniforms.tFog) {
+        fogBlendPass.uniforms.tFog.value = fog.uniforms.tex.value;
+      }
+    }
+
+    // Рендерим сцену с эффектом свечения
+    bloomComposer.render();
+
+    // Копируем результат bloomComposer в текстуру для finalComposer
+    renderer.setRenderTarget(null);
+    finalComposer.passes[0].uniforms.tDiffuse.value =
+      bloomComposer.renderTarget2.texture;
+
+    // Выполняем финальный рендеринг
+    finalComposer.render();
+
     controls.update();
-    composer.render(scene, camera);
   };
 
   animationLoop();
 };
 
-const {
-  scene,
-  camera,
-  renderer,
-  controls,
-  settings,
-  sparkTexture,
-  bloomPass,
-  composer,
-} = initScene();
 const updateBloom = () => {
   if (bloomPass) {
     bloomPass.strength = settings.bloomStrength;
@@ -255,6 +378,8 @@ const updateBloom = () => {
     bloomPass.threshold = settings.bloomThreshold;
   }
 };
+initGui(settings, updateCube, updateParticleSize, updateBloom, lumaBlurPass);
+
 // Создание начального куба
 updateCube();
 
@@ -262,7 +387,6 @@ updateCube();
 animate(scene, camera, renderer, controls, settings, composer);
 
 // Инициализация GUI
-initGui(settings, updateCube, updateParticleSize, updateBloom);
 
 // Добавление слушателя изменения размера окна
 windowResizelistener(camera, renderer);

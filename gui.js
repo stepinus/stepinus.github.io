@@ -4,7 +4,8 @@ export default function init(
   settings,
   updateCube,
   updateParticleSize,
-  updateBloom
+  updateBloom,
+  lumaBlurPass
 ) {
   const gui = new dat.GUI();
   gui.add(settings, "segments", 5, 50).step(1).onChange(updateCube);
@@ -70,6 +71,9 @@ export default function init(
   bloomFolder.add(settings, "bloomStrength", 0, 3).onChange(updateBloom);
   bloomFolder.add(settings, "bloomRadius", 0, 1).onChange(updateBloom);
   bloomFolder.add(settings, "bloomThreshold", 0, 1).onChange(updateBloom);
-  gui.add(settings, 'brightness', 0.01, 1).onChange(updateCube);
-
+  gui.add(settings, "brightness", 0.01, 1).onChange(updateCube);
+  const lumaBlurFolder = gui.addFolder("Luma Blur");
+  lumaBlurFolder.add(settings, "lumaBlurIntensity", 0, 1).onChange((value) => {
+    lumaBlurPass.uniforms.intensity.value = Number(value);
+  });
 }
