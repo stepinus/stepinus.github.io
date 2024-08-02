@@ -19,11 +19,11 @@ vec3 heatmapGradient(float t) {
 }
 vec3 neonGradient(float t) {
     // Синий цвет для центра вихря
-    vec3 centerColor = vec3(0.0, 0.3, 1.0);
+    vec3 centerColor = vec3(0.02, 0.12, 0.36);
     // Фиолетовый цвет для краев вихря
-    vec3 edgeColor = vec3(0.5, 0.0, 0.5);
+    vec3 edgeColor = vec3(0.75, 0.78, 0.82);
     // Белый цвет для частиц вне вихря
-    vec3 outerColor = vec3(1.0, 1.0, 1.0);
+    vec3 outerColor = vec3(0.73, 0.04, 0.57);
 
     // Инвертируем t для правильного направления градиента
     float invertedT = 1.0 - t;

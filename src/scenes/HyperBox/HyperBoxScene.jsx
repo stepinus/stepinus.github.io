@@ -27,7 +27,7 @@ export function Scene() {
     minDistance,
     spin,
   } = useControls({
-    WIDTH: { value: 7000, min: 1000, max: 9000, step: 100 },
+    WIDTH: { value: 4000, min: 1000, max: 9000, step: 100 },
     spin: false,
     boxOut: { value: 4, min: 1, max: 10, step: 0.1 },
     boxIn: { value: 2, min: 1, max: 10, step: 0.1 },
