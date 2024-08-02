@@ -1,9 +1,18 @@
 import { defineConfig } from "vite";
-import glsl from "vite-plugin-glsl";
-
-// https://vitejs.dev/config/
+import react from "@vitejs/plugin-react-swc";
+import glsl from "vite-plugin-glslify-inject"; // https://vitejs.dev/config/
 export default defineConfig({
-  base: "/",
-  plugins: [glsl()],
-  // your other configuration...
+  plugins: [
+    react(),
+    glsl({
+      include: "./src/**/*.(vert|frag|glsl)",
+      exclude: "node_modules/**",
+      // types: { alias: "@shaders", library: "threejs" },
+    }),
+  ],
+  resolve: {
+    alias: {
+      "@shaders": "/src/shaders/",
+    },
+  },
 });
