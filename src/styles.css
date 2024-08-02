@@ -36,6 +36,7 @@ body {
 
 .app {
   font-family: Arial, sans-serif;
+  height: 100%;
 }
 
 .tabs {
@@ -63,5 +64,7 @@ body {
 }
 
 .tab-content {
-  padding: 20px;
+  padding: 0;
+  background-color: black;
+  height: 100%;
 }
