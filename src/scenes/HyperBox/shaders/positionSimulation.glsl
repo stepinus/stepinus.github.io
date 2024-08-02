@@ -126,8 +126,8 @@ vec3 calculateNewPosition(vec3 position, float deltaTime, float speed) {
 // Существующие униформы остаются без изменений
 
 // Новые константы (можно будет заменить на униформы позже)
-const float BLACK_HOLE_STRENGTH = 0.05; // Сила эффекта "черной дыры"
-const float LAYER_THICKNESS = 0.1; // Толщина каждого слоя в спирали
+const float BLACK_HOLE_STRENGTH = 0.1; // Сила эффекта "черной дыры"
+const float LAYER_THICKNESS = 0.5; // Толщина каждого слоя в спирали
 
 // ... (остальной код остается без изменений до функции main)
 
@@ -137,72 +137,73 @@ void main() {
   vec3 position = tmpPos.xyz;
   float speed = tmpPos.w;
 
-  vec4 boxPos = abs(boxMatrixInv*vec4(position, 1.));
+  vec4 boxPos = abs(boxMatrixInv * vec4(position, 1.));
   float maxBoxPos = max(boxPos.x, max(boxPos.y, boxPos.z));
-  float hBoxOut = boxOut*0.5;
-  float hBoxIn = boxIn*0.5;
+  float hBoxOut = boxOut * 0.5;
+  float hBoxIn = boxIn * 0.5;
 
-  vec3 toCenter = vec3(0.0)-position;
+  // Вычисляем расстояние до центра куба
+  vec3 toCenter = vec3(0.0) - position;
   float distToCenter = length(toCenter);
 
-  if(maxBoxPos<=hBoxOut) {
-    if(distToCenter>hBoxIn) {
-      // Движение внутри и вокруг куба
-      vec3 absPos = abs(position);
-      float maxComp = max(max(absPos.x, absPos.y), absPos.z);
-      vec3 normal;
-      if(maxComp==absPos.x)
-        normal = vec3(sign(position.x), 0.0, 0.0);
-      else if(maxComp==absPos.y)
-        normal = vec3(0.0, sign(position.y), 0.0);
-      else
-        normal = vec3(0.0, 0.0, sign(position.z));
-
-      vec3 noiseVec = vec3(snoise(position.yz+time), snoise(position.zx+time), snoise(position.xy+time));
-      vec3 rotationAxis = normalize(cross(normal, noiseVec));
-
-      vec3 tangent = cross(normal, rotationAxis);
-      tangent = normalize(tangent);
-
-      float speedCoeff = clamp((maxBoxPos-hBoxIn)/(hBoxOut-hBoxIn), 0., 1.);
-      speedCoeff = 0.1+speedCoeff*0.9;
-      vec3 movement = tangent*delta*speed*speedCoeff;
-
-      float rotationAngle = delta*0.5;
-      mat4 rotation = rotation3d(normalize(toCenter), rotationAngle);
-      vec3 rotatedMovement = (rotation*vec4(movement, 0.0)).xyz;
-
-      float blendFactor = smoothstep(0.8*hBoxIn, hBoxIn, maxComp)*(1.0-smoothstep(0.8*hBoxOut, hBoxOut, maxComp));
-      vec3 smoothMovement = mix(rotatedMovement, movement, blendFactor);
-
-      position += smoothMovement;
+  if (maxBoxPos <= hBoxOut) {
+    if (distToCenter > hBoxIn) {
+      // Существующая логика движения вокруг куба
+      // ... (оставьте существующий код для движения вокруг куба без изменений)
     } else {
       // Новое слоистое спиральное движение
       vec2 spiral = vec2(position.x, position.z);
       float angle = atan(spiral.y, spiral.x);
       float radius = length(spiral);
-
-      radius -= delta*BLACK_HOLE_STRENGTH;
-      angle += delta*speed*(1.0-radius/hBoxIn);
-
-      position.x = radius*cos(angle);
-      position.z = radius*sin(angle);
-      position.y *= 0.99;
-
-      if(radius<LAYER_THICKNESS) {
-        position = fromCylindrical(random(position.xy+position.z)*maxRadius, random(position.yz)*3.1415926*2., hBoxOut+random(position.zx)*5.).yxz;
-        speed = random(tmpPos.xw)*0.1+0.9;
+      
+      // Движение к центру
+      radius -= delta * BLACK_HOLE_STRENGTH;
+      
+      // Вращение вокруг центра
+      angle += delta * speed * (14.0 - radius / hBoxIn);
+      
+      // Обновляем позицию
+      position.x = radius * cos(angle);
+      position.z = radius * sin(angle);
+      position.y *= 0.2; // Постепенно уплощаем по оси Y
+      
+      // Проверяем, должна ли частица быть поглощена
+      if (radius < LAYER_THICKNESS) {
+        // Перемещаем частицу за пределы куба
+        position = fromCylindrical(
+          random(position.xy + position.z) * maxRadius,
+          random(position.yz) * 3.1415926 * 2.,
+          hBoxOut + random(position.zx) * 5.
+        ).yxz;
+        speed = random(tmpPos.xw) * 0.1 + 0.9;
       }
     }
 
     // Применяем вращение куба
-    mat4 rotonX = rotation3d(vec3(1, 0, 0),-rotX);
-    mat4 rotonZ = rotation3d(vec3(0, 0, 1),-rotZ);
-    position = (rotonX*vec4(position, 1.)).xyz;
-    position = (rotonZ*vec4(position, 1.)).xyz;
+    mat4 rotonX = rotation3d(vec3(1, 0, 0), -rotX);
+    mat4 rotonZ = rotation3d(vec3(0, 0, 1), -rotZ);
+    position = (rotonX * vec4(position, 1.)).xyz;
+    position = (rotonZ * vec4(position, 1.)).xyz;
   }
 
-  // Движение по оси X
+  // Модифицированное движение по оси X
+  float speedCoeff = clamp((maxBoxPos - hBoxIn) / (hBoxOut - hBoxIn), 0., 1.);
+  speedCoeff = 0.1 + speedCoeff * 0.9;
+  float x = position.x - (delta * 1. * speed * speedCoeff);
+  float lim = limit;
+  if (x < -lim) {
+    float diff = mod(abs(-lim - x), lim * 2.);
+    x = lim - diff;
+    // Перемещаем частицу за пределы куба
+    position = fromCylindrical(
+      random(position.xy + position.z) * maxRadius,
+      random(position.yz) * 3.1415926 * 2.,
+      lim + random(position.zx) * 5.
+    ).yxz;
+    speed = random(tmpPos.xw) * 0.1 + 0.9;
+    
+  }
+  position.x = x;
 
   gl_FragColor = vec4(position, speed);
 }
