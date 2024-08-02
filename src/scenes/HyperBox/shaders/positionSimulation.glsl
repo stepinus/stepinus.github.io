@@ -121,6 +121,9 @@ vec3 calculateNewPosition(vec3 position, float deltaTime, float speed) {
     return (rotation*vec4(position-cloudCenter, 1.0)).xyz+cloudCenter;
   }
 }
+// vec3 fromCylindrical(float radius, float theta, float y) {
+//   return vec3(radius*sin(theta), y, radius*cos(theta));
+// }
 
 void main() {
   vec2 uv = gl_FragCoord.xy/resolution.xy;
@@ -132,6 +135,12 @@ void main() {
     float maxBoxPos = max(boxPos.x, max(boxPos.y, boxPos.z));
     float hBoxOut = boxOut*0.5;
     float hBoxIn = boxIn*0.5;
+    if(maxBoxPos<=hBoxIn) {
+      float angle = atan(position.y, position.x)+delta*1.0; // Угол поворота
+      float radius = length(position.xy); // Текущий радиус
+      position.x = radius*cos(angle);
+      position.y = radius*sin(angle);
+    }
   // rotate with the box
     if(maxBoxPos<=hBoxOut) { // if we're in the box - rotate with the box
       mat4 rotonX = rotation3d(vec3(1, 0, 0),-rotX);

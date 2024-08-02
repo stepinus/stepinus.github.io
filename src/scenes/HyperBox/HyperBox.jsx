@@ -57,11 +57,22 @@ export class HyperBox extends LineSegments {
     this.innerSize = { value: innerSize };
     this.outerColor = { value: new Color(outerColor) };
     this.innerColor = { value: new Color(innerColor) };
+
+    // Вычисляем минимальные и максимальные координаты куба
+    this.uBoxMin = {
+      value: new Vector3(-outerSize / 2, -outerSize / 2, -outerSize / 2),
+    };
+    this.uBoxMax = {
+      value: new Vector3(outerSize / 2, outerSize / 2, outerSize / 2),
+    };
+
     m.onBeforeCompile = (shader) => {
       shader.uniforms.outerSize = this.outerSize;
       shader.uniforms.innerSize = this.innerSize;
       shader.uniforms.outerColor = this.outerColor;
       shader.uniforms.innerColor = this.innerColor;
+      shader.uniforms.uBoxMin = this.uBoxMin;
+      shader.uniforms.uBoxMax = this.uBoxMax;
       shader.vertexShader = `
         uniform float outerSize;
         uniform float innerSize;
@@ -83,7 +94,7 @@ export class HyperBox extends LineSegments {
           transformed *= 0.5 * (outerSize - diff * floor(outin + 0.1));
         `
         );
-      console.log(shader.vertexShader);
+      // console.log(shader.vertexShader);
     };
   }
 }
