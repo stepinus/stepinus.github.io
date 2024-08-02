@@ -2,12 +2,11 @@ import { OrbitControls, useFBO } from "@react-three/drei";
 import { Canvas, useFrame, extend, createPortal } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
-import './scene.css';
 
 import SimulationMaterial from './SimulationMaterial';
 
-import vertexShader from "!!raw-loader!./vertexShader.glsl";
-import fragmentShader from "!!raw-loader!./fragmentShader.glsl";
+import vertexShader from "./VertexShader.glsl";
+import fragmentShader from "./FragmentShader.glsl";
 
 extend({ SimulationMaterial: SimulationMaterial });
 

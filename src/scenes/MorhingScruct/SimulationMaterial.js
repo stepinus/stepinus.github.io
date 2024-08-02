@@ -1,6 +1,6 @@
 
-import simulationVertexShader from '!!raw-loader!./simulationVertexShader.glsl';
-import simulationFragmentShader from '!!raw-loader!./simulationFragmentShader.glsl';
+import simulationVertexShader from './SimulationVertexShader.glsl';
+import simulationFragmentShader from './SimulationFragmentShader.glsl';
 import * as THREE from "three";
 
 const getRandomDataSphere = (width, height) => {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import HyperCubeScene from './scenes/HyperBox/index';
 import AnotherScene from './scenes/MorhingScruct/Scene'; // Пример другой сцены
-import './App.css'; // Импортируем стили
+import './styles.css'; // Импортируем стили
 
 const App = () => {
   const [selectedTab, setSelectedTab] = useState(0);
