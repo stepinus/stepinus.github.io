@@ -7,6 +7,7 @@ uniform float boxIn;
 uniform float rotX;
 uniform float rotZ;
 uniform float limit;
+uniform float cubeSize;
 uniform float maxRadius;
 uniform int animationMode; // 0 для старой анимации, 1 для новой
 uniform vec3 cloudCenter; // Центр облака частиц
@@ -121,9 +122,6 @@ vec3 calculateNewPosition(vec3 position, float deltaTime, float speed) {
     return (rotation*vec4(position-cloudCenter, 1.0)).xyz+cloudCenter;
   }
 }
-// vec3 fromCylindrical(float radius, float theta, float y) {
-//   return vec3(radius*sin(theta), y, radius*cos(theta));
-// }
 
 void main() {
   vec2 uv = gl_FragCoord.xy/resolution.xy;
@@ -135,24 +133,56 @@ void main() {
     float maxBoxPos = max(boxPos.x, max(boxPos.y, boxPos.z));
     float hBoxOut = boxOut*0.5;
     float hBoxIn = boxIn*0.5;
-    if(maxBoxPos<=hBoxIn) {
-      float angle = atan(position.y, position.x)+delta*1.0; // Угол поворота
-      float radius = length(position.xy); // Текущий радиус
-      position.x = radius*cos(angle);
-      position.y = radius*sin(angle);
-    }
-  // rotate with the box
-    if(maxBoxPos<=hBoxOut) { // if we're in the box - rotate with the box
+
+    if(maxBoxPos<=hBoxOut) {
+      // Движение внутри и вокруг куба
+      vec3 toCenter = vec3(0.0)-position;
+      float distToCenter = length(toCenter);
+
+      // Определяем ближайшую грань куба
+      vec3 absPos = abs(position);
+      float maxComp = max(max(absPos.x, absPos.y), absPos.z);
+      vec3 normal;
+      if(maxComp==absPos.x)
+        normal = vec3(sign(position.x), 0.0, 0.0);
+      else if(maxComp==absPos.y)
+        normal = vec3(0.0, sign(position.y), 0.0);
+      else
+        normal = vec3(0.0, 0.0, sign(position.z));
+
+      // Вычисляем вектор движения вдоль грани
+      vec3 tangent = cross(normal, vec3(0.0, 1.0, 0.0));
+      if(length(tangent)<0.01)
+        tangent = cross(normal, vec3(1.0, 0.0, 0.0));
+      tangent = normalize(tangent);
+
+      // Вычисляем новую позицию
+      float speedCoeff = clamp((maxBoxPos-hBoxIn)/(hBoxOut-hBoxIn), 0., 1.);
+      speedCoeff = 0.1+speedCoeff*0.9;
+
+      vec3 movement = tangent*delta*tmpPos.w*speedCoeff;
+
+      // Добавляем вращение вокруг центра
+      float rotationAngle = delta*0.5; // Уменьшим скорость вращения
+      mat4 rotation = rotation3d(normalize(toCenter), rotationAngle);
+      vec3 rotatedMovement = (rotation*vec4(movement, 0.0)).xyz;
+
+      // Сглаживаем переход между гранями
+      float blendFactor = smoothstep(0.8*hBoxIn, hBoxIn, maxComp)*(1.0-smoothstep(0.8*hBoxOut, hBoxOut, maxComp));
+      vec3 smoothMovement = mix(rotatedMovement, movement, blendFactor);
+
+      position += smoothMovement;
+
+      // Применяем вращение куба
       mat4 rotonX = rotation3d(vec3(1, 0, 0),-rotX);
       mat4 rotonZ = rotation3d(vec3(0, 0, 1),-rotZ);
       position = (rotonX*vec4(position, 1.)).xyz;
       position = (rotonZ*vec4(position, 1.)).xyz;
     }
 
+    // Проверка границ (оставляем без изменений)
     float speedCoeff = clamp((maxBoxPos-hBoxIn)/(hBoxOut-hBoxIn), 0., 1.);
     speedCoeff = 0.1+speedCoeff*0.9;
-
-  // check the limits
     float x = position.x-(delta*1.*tmpPos.w*speedCoeff);
     float lim = limit;
     if(x<-lim) {
@@ -163,8 +193,9 @@ void main() {
     }
     position.x = x;
   } else {
+    // Оставляем существующую логику для режима 1 без изменений
     position = calculateNewPosition(position, delta, tmpPos.w);
   }
-  gl_FragColor = vec4(position, tmpPos.w);
 
+  gl_FragColor = vec4(position, tmpPos.w);
 }
