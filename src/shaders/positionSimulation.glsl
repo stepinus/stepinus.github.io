@@ -141,6 +141,6 @@ void main() {
     ).yxz;
     tmpPos.w = random(tmpPos.xw) * 0.1 + 0.9;
   }
-  position.x = x;
+  // position.x = x;
   gl_FragColor = vec4(position, tmpPos.w);
 }
