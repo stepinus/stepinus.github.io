@@ -40,6 +40,7 @@ export default function Scene() {
     aColor,
     bColor,
     cColor,
+    meshColor
   } = useControls({
     WIDTH: { value: params.WIDTH, min: 1000, max: 9000, step: 100 },
     spin: { value: params.spin },
@@ -57,6 +58,7 @@ export default function Scene() {
       max: 15000,
       step: 100,
     },
+    meshColor: "white",
     particleCount: { value: params.particleCount, min: 2, max: 1000 },
     sideLength: { value: params.sideLength, min: 1, max: 10, step: 0.1 },
     maxConnections: { value: params.maxConnections, min: 1, max: 100, step: 1 },
@@ -173,7 +175,18 @@ export default function Scene() {
     <>
       <group ref={boxRef} visible={boxHelperVisible} />
       <ControlsGUI onParamsChange={handleParamsChange} />
-      {showMesh && <NeuralNetwork />}
+      {showMesh && (
+        <NeuralNetwork
+          maxConnections={maxConnections}
+          maxParticleCount={maxParticleCount}
+          sideLength={sideLength}
+          minDistance={minDistance}
+          vertexpos={vertexpos}
+          colorpos={coloropos}
+          umConnected={umConnected}
+          color={meshColor}
+        />
+      )}
     </>
   );
 }

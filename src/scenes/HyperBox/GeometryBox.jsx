@@ -7,30 +7,23 @@ function NeuralNetwork({
   maxConnections = 50,
   maxParticleCount = 1000,
   sideLength = 4,
+  particleCount = 100,
   minDistance = 4,
-  vertexpos = 0,
-  colorpos = 0,
-  umConnected,
+ sideLength = 4,// Side length of the cube
   color = "white",
 }) {
   const groupRef = useRef();
   const particlesRef = useRef();
   const linesGeometryRef = useRef();
 
-  const maxParticleCount = 1000;
-  const particleCount = 100;
-  const sideLength = 4; // Side length of the cube
-  const halfSide = sideLength / 2;
-  const maxConnections = 50;
-  const minDistance = 4;
-  let vertexpos = 0;
-  let colorpos = 0;
-  let numConnected = 0;
+  let  halfSide = sideLength / 2;
+
+
+
 
   const segments = maxParticleCount * maxParticleCount;
   const positions = useMemo(() => new Float32Array(segments * 3), [segments]);
   const colors = useMemo(() => new Float32Array(segments * 3), [segments]);
-
   const particlePositions = useMemo(
     () => new Float32Array(maxParticleCount * 3),
     []
