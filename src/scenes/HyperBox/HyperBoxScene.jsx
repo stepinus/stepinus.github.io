@@ -12,26 +12,10 @@ import { GPUPoints } from "./GPUPoints";
 import { GPGPU } from "./GPGPU";
 import NeuralNetwork from "./GeometryBox";
 import ControlsGUI from "./ControlsGUI";
+import uiparams from "./params";
 
 export default function Scene() {
-  const [params, setParams] = useState({
-    WIDTH: 4000,
-    spin: false,
-    boxOut: 4,
-    boxIn: 2,
-    limit: 15,
-    maxRadius: 5,
-    timeSpeed: 1,
-    streamSpeed: 2,
-    boxHelperVisible: true,
-    GeometryVisible: false,
-    maxParticleCount: 1000,
-    particleCount: 100,
-    sideLength: 4,
-    maxConnections: 6,
-    minDistance: 2,
-    showMesh: true,
-  });
+  const [params, setParams] = useState(uiparams);
 
   const handleParamsChange = useCallback((newParams) => {
     setParams(newParams);
@@ -65,9 +49,10 @@ export default function Scene() {
     const p = new GPUPoints(params.WIDTH);
     p.material.uniforms.boxOut.value = params.boxOut;
     p.material.uniforms.boxIn.value = params.boxIn;
+    p.material.uniforms.offset.value = params.offset;
     p.frustumCulled = false;
     return p;
-  }, [params.WIDTH, params.boxOut, params.boxIn]);
+  }, [params.WIDTH, params.boxOut, params.boxIn, params.offset]);
 
   useEffect(() => {
     scene.add(points);
@@ -88,7 +73,8 @@ export default function Scene() {
       params.maxRadius,
       params.limit,
       params.boxIn,
-      params.boxOut
+      params.boxOut,
+      params.offset
     );
     return g;
   }, [
@@ -98,6 +84,7 @@ export default function Scene() {
     params.limit,
     params.boxIn,
     params.boxOut,
+    params.offset
   ]);
 
   useEffect(() => {

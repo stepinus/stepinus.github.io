@@ -29,6 +29,7 @@ class GPUPoints extends Points {
         boxOut: { value: 5 },
         posTexture: { value: null },
         boxMatrixInv: { value: new Matrix4() },
+        offset: { value: 1 },
       },
       vertexShader: vertShader,
       fragmentShader: fragShader,

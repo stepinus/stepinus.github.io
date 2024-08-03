@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+import params from "./params";
 
 function ControlsGUI({ onParamsChange }) {
   const guiRef = useRef();
@@ -7,25 +8,6 @@ function ControlsGUI({ onParamsChange }) {
   useEffect(() => {
     const gui = new GUI();
     guiRef.current = gui;
-
-    const params = {
-      WIDTH: 4000,
-      spin: false,
-      boxOut: 4,
-      boxIn: 2,
-      limit: 15,
-      maxRadius: 5,
-      timeSpeed: 1,
-      streamSpeed: 2,
-      boxHelperVisible: true,
-      GeometryVisible: false,
-      maxParticleCount: 1000,
-      particleCount: 100,
-      sideLength: 4,
-      maxConnections: 6,
-      minDistance: 2,
-      showMesh: true,
-    };
 
     gui.add(params, "WIDTH", 1000, 9000, 100);
     gui.add(params, "spin");
@@ -41,8 +23,8 @@ function ControlsGUI({ onParamsChange }) {
     gui.add(params, "particleCount", 2, 1000);
     gui.add(params, "sideLength", 1, 10, 0.1);
     gui.add(params, "maxConnections", 1, 100, 1);
-    gui.add(params, "minDistance", 0.5, 100, 0.5);
     gui.add(params, "showMesh");
+    gui.add(params, "offset", 0.1, 20, 0.5);
 
     gui.onChange(() => {
       onParamsChange(params);

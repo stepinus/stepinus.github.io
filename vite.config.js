@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react-swc";
 import glsl from "vite-plugin-glslify-inject"; // https://vitejs.dev/config/
 export default defineConfig({
   base: "/",
+  optimizeDeps: {
+    exclude: ['dependency-that-causes-the-problem']
+  },
   plugins: [
     react(),
     glsl({
