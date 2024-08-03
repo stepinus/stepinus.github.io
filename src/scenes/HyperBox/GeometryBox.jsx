@@ -4,12 +4,12 @@ import { AdditiveBlending, Vector3 } from "three";
 import { Box } from "@react-three/drei"; // Добавляем импорт Box
 
 function NeuralNetwork({
-  maxConnections,
-  maxParticleCount,
-  sideLength,
-  minDistance,
-  vertexpos,
-  colorpos,
+  maxConnections = 50,
+  maxParticleCount = 1000,
+  sideLength = 4,
+  minDistance = 4,
+  vertexpos = 0,
+  colorpos = 0,
   umConnected,
   color = "white",
 }) {
