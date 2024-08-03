@@ -1,52 +1,41 @@
-import React, { useRef, useEffect, useMemo } from "react";
+import React, {
+  useRef,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+} from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useControls } from "leva";
 import * as THREE from "three";
 import { HyperBox } from "./HyperBox";
 import { GPUPoints } from "./GPUPoints";
 import { GPGPU } from "./GPGPU";
 import NeuralNetwork from "./GeometryBox";
+import ControlsGUI from "./ControlsGUI";
 
-export function Scene() {
-  const {
-    WIDTH,
-    boxOut,
-    boxIn,
-    limit,
-    maxRadius,
-    timeSpeed,
-    streamSpeed,
-    boxHelperVisible,
-    GeometryVisible,
-    particleCount,
-    maxParticleCount,
-    particleColor,
-    sideLength,
-    showMesh,
-    maxConnections,
-    minDistance,
-    spin,
-  } = useControls({
-    WIDTH: { value: 4000, min: 1000, max: 9000, step: 100 },
+export default function Scene() {
+  const [params, setParams] = useState({
+    WIDTH: 4000,
     spin: false,
-    boxOut: { value: 4, min: 1, max: 10, step: 0.1 },
-    boxIn: { value: 2, min: 1, max: 10, step: 0.1 },
-    limit: { value: 15, min: 5, max: 30, step: 1 },
-    maxRadius: { value: 5, min: 1, max: 10, step: 0.1 },
-    timeSpeed: { value: 1, min: 0, max: 2, step: 0.01 },
-    streamSpeed: { value: 2, min: 0.5, max: 2, step: 0.01 },
+    boxOut: 4,
+    boxIn: 2,
+    limit: 15,
+    maxRadius: 5,
+    timeSpeed: 1,
+    streamSpeed: 2,
     boxHelperVisible: true,
     GeometryVisible: false,
-    maxParticleCount: { value: 1000, max: 15000, step: 100 },
-    particleCount: { vakue: 100, max: 1000, min: 2 },
-    sideLength: { value: 4, min: 1, max: 10, step: 0.1 },
-    maxConnections: { value: 6, min: 1, max: 100, step: 1 },
-    minDistance: { value: 2, min: 0.5, step: 0.5, max: 100 },
-    vertexpos: { value: 0 },
-    colorpos: { value: 0 },
-    numConnected: { value: 0 },
+    maxParticleCount: 1000,
+    particleCount: 100,
+    sideLength: 4,
+    maxConnections: 6,
+    minDistance: 2,
     showMesh: true,
   });
+
+  const handleParamsChange = useCallback((newParams) => {
+    setParams(newParams);
+  }, []);
 
   const { gl, scene, camera } = useThree();
   const boxRef = useRef();
@@ -56,8 +45,8 @@ export function Scene() {
 
   // Инициализация HyperBox
   const boxHelper = useMemo(() => {
-    return new HyperBox(boxOut, boxIn, 0x007fff, 0xffffff);
-  }, [boxOut, boxIn]);
+    return new HyperBox(params.boxOut, params.boxIn, 0x007fff, 0xffffff);
+  }, [params.boxOut, params.boxIn]);
 
   useEffect(() => {
     if (boxRef.current) {
@@ -73,12 +62,12 @@ export function Scene() {
 
   // Инициализация GPUPoints
   const points = useMemo(() => {
-    const p = new GPUPoints(WIDTH);
-    p.material.uniforms.boxOut.value = boxOut;
-    p.material.uniforms.boxIn.value = boxIn;
+    const p = new GPUPoints(params.WIDTH);
+    p.material.uniforms.boxOut.value = params.boxOut;
+    p.material.uniforms.boxIn.value = params.boxIn;
     p.frustumCulled = false;
     return p;
-  }, [WIDTH, boxOut, boxIn]);
+  }, [params.WIDTH, params.boxOut, params.boxIn]);
 
   useEffect(() => {
     scene.add(points);
@@ -92,11 +81,24 @@ export function Scene() {
 
   // Инициализация GPGPU
   const gpu = useMemo(() => {
-    const g = new GPGPU(WIDTH, WIDTH, gl, maxRadius, limit);
-    g.positionVariable.material.uniforms.boxOut.value = boxOut;
-    g.positionVariable.material.uniforms.boxIn.value = boxIn;
+    const g = new GPGPU(
+      params.WIDTH,
+      params.WIDTH,
+      gl,
+      params.maxRadius,
+      params.limit,
+      params.boxIn,
+      params.boxOut
+    );
     return g;
-  }, [WIDTH, gl, maxRadius, limit, boxOut, boxIn]);
+  }, [
+    params.WIDTH,
+    gl,
+    params.maxRadius,
+    params.limit,
+    params.boxIn,
+    params.boxOut,
+  ]);
 
   useEffect(() => {
     gpuRef.current = gpu;
@@ -108,20 +110,20 @@ export function Scene() {
   const boxMatrixInv = useMemo(() => new THREE.Matrix4(), []);
 
   useFrame(() => {
-    const delta = clockRef.current.getDelta() * timeSpeed;
+    const delta = clockRef.current.getDelta() * params.timeSpeed;
     const rotX = delta * 0.314;
     const rotZ = delta * 0.27;
 
     if (boxRef.current && gpuRef.current && points) {
-      if (spin) {
-        boxRef.current.rotation.x += rotX;
-        boxRef.current.rotation.z += rotZ;
-      }
+      // if (spin) {
+      //   boxRef.current.rotation.x += rotX;
+      //   boxRef.current.rotation.z += rotZ;
+      // }
       boxMatrixInv.copy(boxRef.current.matrixWorld).invert();
       points.material.uniforms.boxMatrixInv.value.copy(boxMatrixInv);
 
       gpuRef.current.positionVariable.material.uniforms.delta.value =
-        delta * streamSpeed;
+        delta * params.streamSpeed;
       gpuRef.current.positionVariable.material.uniforms.rotX.value = rotX;
       gpuRef.current.positionVariable.material.uniforms.rotZ.value = rotZ;
       gpuRef.current.positionVariable.material.uniforms.boxMatrixInv.value.copy(
@@ -140,19 +142,8 @@ export function Scene() {
 
   return (
     <>
-      <group ref={boxRef} visible={boxHelperVisible} />
-      {GeometryVisible && (
-        <NeuralNetwork
-          {...{
-            maxParticleCount,
-            particleCount,
-            sideLength,
-            maxConnections,
-            minDistance,
-            showMesh,
-          }}
-        />
-      )}
+      <group ref={boxRef} visible={params.boxHelperVisible} />
+      <ControlsGUI onParamsChange={handleParamsChange} />
     </>
   );
 }

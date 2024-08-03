@@ -7,6 +7,7 @@ import {
 } from "three";
 import vertShader from "./shaders/pointsVert.glsl";
 import fragShader from "./shaders/pointsFrag.glsl";
+
 class GPUPoints extends Points {
   constructor(WIDTH) {
     let pg = new BufferGeometry();

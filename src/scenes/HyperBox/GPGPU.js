@@ -3,12 +3,11 @@ import { GPUComputationRenderer } from "three/examples/jsm/misc/GPUComputationRe
 import positionSimulation from "./shaders/positionSimulation.glsl";
 
 export class GPGPU extends GPUComputationRenderer {
-  constructor(w, h, rndr, maxRadius, limit) {
+  constructor(w, h, rndr, maxRadius, limit, boxIn, boxOut) {
     super(w, h, rndr);
 
     let dtPosition = this.createTexture();
-    //console.log(dtPosition)
-    fillPositionTexture(dtPosition);
+    fillPositionTexture(dtPosition, boxIn, boxOut);
     this.positionVariable = this.addVariable(
       "texturePosition",
       positionSimulation,
@@ -17,33 +16,38 @@ export class GPGPU extends GPUComputationRenderer {
     let u = this.positionVariable.material.uniforms;
     u["time"] = { value: 0 };
     u["delta"] = { value: 0 };
-    u["boxOut"] = { value: 4 };
-    u["boxIn"] = { value: 2 };
+    u["boxOut"] = { value: boxOut };
+    u["boxIn"] = { value: boxIn };
     u["rotX"] = { value: 0 };
     u["rotZ"] = { value: 0 };
     u["limit"] = { value: limit };
     u["maxRadius"] = { value: maxRadius };
     u["boxMatrixInv"] = { value: new THREE.Matrix4() };
-    u["boxMargin:"] =  { value: 0};
+    u["boxMargin"] = { value: 0 };
 
     this.positionVariable.wrapS = THREE.RepeatWrapping;
     this.positionVariable.wrapT = THREE.RepeatWrapping;
 
     this.init();
 
-    function fillPositionTexture(texture) {
+    function fillPositionTexture(texture, boxIn, boxOut) {
       const theArray = texture.image.data;
-      let v = new THREE.Vector3();
       for (let k = 0, kl = theArray.length; k < kl; k += 4) {
-        v.setFromCylindricalCoords(
-          Math.random(),
-          Math.PI * 2 * Math.random(),
-          Math.random() - 0.5
+        let x, y, z;
+        do {
+          x = (Math.random() - 0.5) * boxOut * 2;
+          y = (Math.random() - 0.5) * boxOut * 2;
+          z = (Math.random() - 0.5) * boxOut * 2;
+        } while (
+          Math.abs(x) <= boxIn &&
+          Math.abs(y) <= boxIn &&
+          Math.abs(z) <= boxIn
         );
-        theArray[k + 0] = v.y * limit * 2 + limit + 5;
-        theArray[k + 1] = v.x * maxRadius;
-        theArray[k + 2] = v.z * maxRadius;
-        theArray[k + 3] = Math.random() * 0.1 + 0.9;
+
+        theArray[k + 0] = x;
+        theArray[k + 1] = y;
+        theArray[k + 2] = z;
+        theArray[k + 3] = Math.random() * 0.1 + 0.9; // Оставляем оригинальное значение для альфа-канала
       }
     }
   }
