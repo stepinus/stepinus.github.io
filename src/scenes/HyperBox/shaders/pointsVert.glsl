@@ -45,8 +45,8 @@ void main(){
   vec4 boxPos = abs(boxMatrixInv * vec4(pos, 1.));
   float maxBoxPos = max(boxPos.x, max(boxPos.y, boxPos.z));
   float mixVal = clamp((hbOut - maxBoxPos)/(hbOut - hbIn), 0., 1.);
-  //vColor = mix(vec3(0.651, 0.569, 0.314), vec3(1), mixVal);
-  vColor = neonGradient(mixVal);
+  vColor = mix(vec3(0.651, 0.569, 0.314), vec3(1), mixVal :0.1);
+  // vColor = neonGradient(mixVal);
 
   vPosition = pos;
 
