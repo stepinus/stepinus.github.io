@@ -192,7 +192,7 @@ void main() {
     position = fromCylindrical(random(position.xy+position.z)*maxRadius, random(position.yz)*3.1415926*2., lim+random(position.zx)*5.).yxz;
     speed = random(tmpPos.xw)*0.1+0.9;
   }
-  position.x = x;
+  // position.x = x;
 
   gl_FragColor = vec4(position, speed);
 }

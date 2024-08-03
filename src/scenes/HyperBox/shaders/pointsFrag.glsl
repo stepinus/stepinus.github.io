@@ -10,5 +10,5 @@ void main() {
   if (abs(vPosition.y) > offset || abs(vPosition.x) > offset || abs(vPosition.z) > offset) discard;
   // if (abs(vPosition.x) > 20.) discard;
   vec3 col = mix(vColor, vColor * 0.875, ss(0.4, 0.5, uvLength)); // nice stroke
-  gl_FragColor = vec4(col, 1);
+  gl_FragColor = vec4(col, particleOpacity);
 }

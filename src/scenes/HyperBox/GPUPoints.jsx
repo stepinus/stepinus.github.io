@@ -9,8 +9,9 @@ import {
 import vertShader from "./shaders/pointsVert.glsl";
 import fragShader from "./shaders/pointsFrag.glsl";
 
+import { Point } from "@react-three/drei";
 class GPUPoints extends Points {
-  constructor(WIDTH) {
+  constructor(WIDTH, particleOpacity, pointSize = 1) {
     let pg = new BufferGeometry();
     let pos = new Float32Array(WIDTH * WIDTH * 3);
     let refs = new Float32Array(WIDTH * WIDTH * 2);
@@ -27,13 +28,16 @@ class GPUPoints extends Points {
     let pm = new ShaderMaterial({
       uniforms: {
         boxIn: { value: 3 },
-        boxOut: { value: 5 },
+        boxOut: { value: 4 },
         posTexture: { value: null },
         boxMatrixInv: { value: new Matrix4() },
         offset: { value: 1 },
         aColor: { valaue: new Vector3 },
         bColor: { valaue: new Vector3 },
         cColor: { valaue: new Vector3 },
+        u_isPlaying: { value: true },
+        particleOpacity: { value: particleOpacity },
+        pointSize: { value: pointSize },
       },
       vertexShader: vertShader,
       fragmentShader: fragShader,

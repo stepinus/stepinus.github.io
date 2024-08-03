@@ -17,6 +17,7 @@ import { useControls } from "leva";
 
 export default function Scene() {
   const [params, setParams] = useState(uiparams);
+import CubeComponent from "./MeshBox";
 
   const {
     WIDTH,
@@ -65,6 +66,32 @@ export default function Scene() {
     aColor: [0.02, 0.12, 0.36],
     bColor: [0.75, 0.78, 0.82],
     cColor: [0.73, 0.04, 0.57],
+    play,
+    particleOpacity,
+    pointSize,
+  } = useControls({
+    play: false,
+    WIDTH: { value: 2000, min: 1000, max: 4000, step: 100 },
+    spin: false,
+    boxOut: { value: 4, min: 1, max: 10, step: 0.1 },
+    boxIn: { value: 2, min: 1, max: 10, step: 0.1 },
+    particleOpacity: { value: 1, min: 0.0, max: 1, step: 0.1 },
+    pointSize: { value: 2, min: 1, max: 10, step: 0.1 },
+    limit: { value: 15, min: 5, max: 30, step: 1 },
+    maxRadius: { value: 5, min: 1, max: 15, step: 0.1 },
+    timeSpeed: { value: 1, min: 0, max: 2, step: 0.01 },
+    streamSpeed: { value: 2, min: 0.5, max: 2, step: 0.01 },
+    boxHelperVisible: true,
+    GeometryVisible: false,
+    maxParticleCount: { value: 1000, max: 15000, step: 100 },
+    particleCount: { vakue: 100, max: 1000, min: 2 },
+    sideLength: { value: 4, min: 1, max: 10, step: 0.1 },
+    maxConnections: { value: 6, min: 1, max: 100, step: 1 },
+    minDistance: { value: 2, min: 0.5, step: 0.5, max: 100 },
+    vertexpos: { value: 0 },
+    colorpos: { value: 0 },
+    numConnected: { value: 0 },
+    showMesh: true,
   });
 
   const handleParamsChange = useCallback((newParams) => {
@@ -97,8 +124,10 @@ export default function Scene() {
 
   // Инициализация GPUPoints
   const points = useMemo(() => {
-    const p = new GPUPoints(WIDTH);
+    const p = new GPUPoints(WIDTH, particleOpacity);
     p.material.uniforms.boxOut.value = boxOut;
+    p.material.uniforms.pointSize.value = pointSize; // Устанавливаем размер точек
+
     p.material.uniforms.boxIn.value = boxIn;
     p.material.uniforms.offset.value = offset;
     p.material.uniforms.aColor.value =aColor;
@@ -107,6 +136,10 @@ export default function Scene() {
     p.frustumCulled = false;
     return p;
   }, [WIDTH, boxOut, boxIn, offset]);
+    p.material.uniforms.particleOpacity.value = particleOpacity;
+    p.frustumCulled = false;
+    return p;
+  }, [WIDTH, boxOut, boxIn, particleOpacity, pointSize]);
 
   useEffect(() => {
     scene.add(points);
@@ -132,6 +165,13 @@ export default function Scene() {
     );
     return g;
   }, [WIDTH, gl, maxRadius, limit, boxIn, boxOut, offset]);
+      play,
+      particleOpacity
+    );
+    g.positionVariable.material.uniforms.boxOut.value = boxOut;
+    g.positionVariable.material.uniforms.boxIn.value = boxIn;
+    return g;
+  }, [WIDTH, gl, maxRadius, limit, boxOut, boxIn, play]);
 
   useEffect(() => {
     gpuRef.current = gpu;
@@ -173,6 +213,19 @@ export default function Scene() {
     <>
       <group ref={boxRef} visible={boxHelperVisible} />
       <ControlsGUI onParamsChange={handleParamsChange} />
+      {GeometryVisible && (
+        <NeuralNetwork
+          {...{
+            maxParticleCount,
+            particleCount,
+            sideLength,
+            maxConnections,
+            minDistance,
+            showMesh,
+          }}
+        />
+      )}
+      {/* {showMesh && <CubeComponent />} */}
     </>
   );
 }
