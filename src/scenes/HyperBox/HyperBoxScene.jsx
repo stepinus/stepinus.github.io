@@ -101,7 +101,7 @@ export default function Scene() {
     p.material.uniforms.boxOut.value = boxOut;
     p.material.uniforms.boxIn.value = boxIn;
     p.material.uniforms.offset.value = offset;
-    p.material.uniforms.aColor.value =aColor;
+    p.material.uniforms.aColor.value = aColor;
     p.material.uniforms.bColor.value = bColor;
     p.material.uniforms.cColor.value = cColor;
     p.frustumCulled = false;
@@ -173,6 +173,7 @@ export default function Scene() {
     <>
       <group ref={boxRef} visible={boxHelperVisible} />
       <ControlsGUI onParamsChange={handleParamsChange} />
+      {showMesh && <NeuralNetwork />}
     </>
   );
 }

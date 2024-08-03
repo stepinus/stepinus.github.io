@@ -3,7 +3,16 @@ import { useFrame } from "@react-three/fiber";
 import { AdditiveBlending, Vector3 } from "three";
 import { Box } from "@react-three/drei"; // Добавляем импорт Box
 
-function NeuralNetwork({}) {
+function NeuralNetwork({
+  maxConnections,
+  maxParticleCount,
+  sideLength,
+  minDistance,
+  vertexpos,
+  colorpos,
+  umConnected,
+  color = "white",
+}) {
   const groupRef = useRef();
   const particlesRef = useRef();
   const linesGeometryRef = useRef();
@@ -133,7 +142,7 @@ function NeuralNetwork({}) {
     <group ref={groupRef} dispose={null}>
       <Box args={[sideLength, sideLength, sideLength]} position={[0, 0, 0]}>
         <meshBasicMaterial
-          color="white"
+          color={color}
           wireframe={true}
           transparent={true}
           opacity={1.0}
