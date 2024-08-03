@@ -40,7 +40,10 @@ export default function Scene() {
     aColor,
     bColor,
     cColor,
-    meshColor
+    meshColor,
+    vertexpos,
+    coloropos,
+    umConnected,
   } = useControls({
     WIDTH: { value: params.WIDTH, min: 1000, max: 9000, step: 100 },
     spin: { value: params.spin },
@@ -67,6 +70,8 @@ export default function Scene() {
     aColor: [0.02, 0.12, 0.36],
     bColor: [0.75, 0.78, 0.82],
     cColor: [0.73, 0.04, 0.57],
+    colorpos: 0,
+    umConnected: 0,
   });
 
   const handleParamsChange = useCallback((newParams) => {

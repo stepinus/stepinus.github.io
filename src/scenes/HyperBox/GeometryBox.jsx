@@ -9,8 +9,10 @@ function NeuralNetwork({
   sideLength = 4,
   particleCount = 100,
   minDistance = 4,
- sideLength = 4,// Side length of the cube
   color = "white",
+  colorpos=0,
+  vertexpos=0,
+  numConnected=0
 }) {
   const groupRef = useRef();
   const particlesRef = useRef();
