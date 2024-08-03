@@ -9,6 +9,7 @@ import sparkTexture from "./spark1.png";
 import vertexShader from "./vertex.glsl";
 import fragmentShader from "./fragment.glsl";
 import createCubePositions from "./createCubePositions";
+import { createCubeLines, createCubePoints } from "./utils";
 
 // Custom hook for creating cube geometry
 const useCubeGeometry = (segments, cubeSize, particleSize) => {
@@ -20,7 +21,7 @@ const useCubeGeometry = (segments, cubeSize, particleSize) => {
       particles,
       sizes,
       isPoint: pointIsPoint,
-    } = createCubePositions(segments, cubeSize, particleSize);
+    } = createCubePoints(segments, cubeSize, particleSize);
     const { lines, isPoint: lineIsPoint } = createCubeLines(segments, cubeSize);
 
     geometry.setAttribute(
@@ -69,14 +70,14 @@ extend({ CubeMaterial });
 
 const CubeComponent = ({
   segments = 30,
-  cubeSize = 1,
-  particleSize = 0.1,
+  cubeSize = 5,
+  particleSize = 0.2,
   deformIntensity = 0.5,
   deformFrequency = 1,
   deformAmplitude = 0.2,
   isDeformActive = true,
   isWaveSizeActive = false,
-  waveScale = 1,
+  waveScale = 2,
   waveSpeed = 1,
   waveSizeScale = 1,
   baseColor = [1, 1, 1],
@@ -84,7 +85,7 @@ const CubeComponent = ({
   brightness = 0.8,
   bloomIntensity = 1.0,
   bloomThreshold = 0.9,
-  bloomRadius = 0.5,
+  bloomRadius = 0.2,
 }) => {
   const geometry = useCubeGeometry(segments, cubeSize, particleSize);
   const materialRef = useRef();

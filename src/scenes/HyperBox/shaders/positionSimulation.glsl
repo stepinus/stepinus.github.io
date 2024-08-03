@@ -129,7 +129,6 @@ vec3 calculateNewPosition(vec3 position, float deltaTime, float speed) {
 const float BLACK_HOLE_STRENGTH = 0.1; // Сила эффекта "черной дыры"
 const float LAYER_THICKNESS = 0.5; // Толщина каждого слоя в спирали
 
-// ... (остальной код остается без изменений до функции main)
 
 void main() {
   vec2 uv = gl_FragCoord.xy/resolution.xy;
@@ -182,8 +181,8 @@ void main() {
     // Применяем вращение куба
     mat4 rotonX = rotation3d(vec3(1, 0, 0), -rotX);
     mat4 rotonZ = rotation3d(vec3(0, 0, 1), -rotZ);
-    position = (rotonX * vec4(position, 1.)).xyz;
-    position = (rotonZ * vec4(position, 1.)).xyz;
+    // position = (rotonX * vec4(position, 1.)).xyz;
+    // position = (rotonZ * vec4(position, 1.)).xyz;
   }
 
   // Модифицированное движение по оси X
@@ -203,7 +202,7 @@ void main() {
     speed = random(tmpPos.xw) * 0.1 + 0.9;
     
   }
-  position.x = x;
+  // position.x = x;
 
   gl_FragColor = vec4(position, speed);
 }

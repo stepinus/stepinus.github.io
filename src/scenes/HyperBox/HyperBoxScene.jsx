@@ -6,6 +6,7 @@ import { HyperBox } from "./HyperBox";
 import { GPUPoints } from "./GPUPoints";
 import { GPGPU } from "./GPGPU";
 import NeuralNetwork from "./GeometryBox";
+import CubeComponent from "./MeshBox";
 
 export function Scene() {
   const {
@@ -26,13 +27,19 @@ export function Scene() {
     maxConnections,
     minDistance,
     spin,
+    play,
+    particleOpacity,
+    pointSize,
   } = useControls({
-    WIDTH: { value: 4000, min: 1000, max: 9000, step: 100 },
+    play: false,
+    WIDTH: { value: 2000, min: 1000, max: 4000, step: 100 },
     spin: false,
     boxOut: { value: 4, min: 1, max: 10, step: 0.1 },
     boxIn: { value: 2, min: 1, max: 10, step: 0.1 },
+    particleOpacity: { value: 1, min: 0.0, max: 1, step: 0.1 },
+    pointSize: { value: 2, min: 1, max: 10, step: 0.1 },
     limit: { value: 15, min: 5, max: 30, step: 1 },
-    maxRadius: { value: 5, min: 1, max: 10, step: 0.1 },
+    maxRadius: { value: 5, min: 1, max: 15, step: 0.1 },
     timeSpeed: { value: 1, min: 0, max: 2, step: 0.01 },
     streamSpeed: { value: 2, min: 0.5, max: 2, step: 0.01 },
     boxHelperVisible: true,
@@ -73,12 +80,15 @@ export function Scene() {
 
   // Инициализация GPUPoints
   const points = useMemo(() => {
-    const p = new GPUPoints(WIDTH);
+    const p = new GPUPoints(WIDTH, particleOpacity);
     p.material.uniforms.boxOut.value = boxOut;
+    p.material.uniforms.pointSize.value = pointSize; // Устанавливаем размер точек
+
     p.material.uniforms.boxIn.value = boxIn;
+    p.material.uniforms.particleOpacity.value = particleOpacity;
     p.frustumCulled = false;
     return p;
-  }, [WIDTH, boxOut, boxIn]);
+  }, [WIDTH, boxOut, boxIn, particleOpacity, pointSize]);
 
   useEffect(() => {
     scene.add(points);
@@ -92,11 +102,19 @@ export function Scene() {
 
   // Инициализация GPGPU
   const gpu = useMemo(() => {
-    const g = new GPGPU(WIDTH, WIDTH, gl, maxRadius, limit);
+    const g = new GPGPU(
+      WIDTH,
+      WIDTH,
+      gl,
+      maxRadius,
+      limit,
+      play,
+      particleOpacity
+    );
     g.positionVariable.material.uniforms.boxOut.value = boxOut;
     g.positionVariable.material.uniforms.boxIn.value = boxIn;
     return g;
-  }, [WIDTH, gl, maxRadius, limit, boxOut, boxIn]);
+  }, [WIDTH, gl, maxRadius, limit, boxOut, boxIn, play]);
 
   useEffect(() => {
     gpuRef.current = gpu;
@@ -153,6 +171,7 @@ export function Scene() {
           }}
         />
       )}
+      {/* {showMesh && <CubeComponent />} */}
     </>
   );
 }
