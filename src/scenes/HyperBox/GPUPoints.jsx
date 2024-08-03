@@ -4,6 +4,7 @@ import {
   BufferAttribute,
   Matrix4,
   ShaderMaterial,
+  Vector3,
 } from "three";
 import vertShader from "./shaders/pointsVert.glsl";
 import fragShader from "./shaders/pointsFrag.glsl";
@@ -30,6 +31,9 @@ class GPUPoints extends Points {
         posTexture: { value: null },
         boxMatrixInv: { value: new Matrix4() },
         offset: { value: 1 },
+        aColor: { valaue: new Vector3 },
+        bColor: { valaue: new Vector3 },
+        cColor: { valaue: new Vector3 },
       },
       vertexShader: vertShader,
       fragmentShader: fragShader,

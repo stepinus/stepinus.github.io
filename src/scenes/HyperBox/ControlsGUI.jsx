@@ -1,41 +1,32 @@
-import { useEffect, useRef } from "react";
-import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+import React from "react";
+import { useControls, button } from "leva";
 import params from "./params";
 
 function ControlsGUI({ onParamsChange }) {
-  const guiRef = useRef();
-
-  useEffect(() => {
-    const gui = new GUI();
-    guiRef.current = gui;
-
-    gui.add(params, "WIDTH", 1000, 9000, 100);
-    gui.add(params, "spin");
-    gui.add(params, "boxOut", 1, 10, 0.1);
-    gui.add(params, "boxIn", 1, 10, 0.1);
-    gui.add(params, "limit", 5, 30, 1);
-    gui.add(params, "maxRadius", 1, 10, 0.1);
-    gui.add(params, "timeSpeed", 0, 2, 0.01);
-    gui.add(params, "streamSpeed", 0.5, 2, 0.01);
-    gui.add(params, "boxHelperVisible");
-    gui.add(params, "GeometryVisible");
-    gui.add(params, "maxParticleCount", 100, 15000, 100);
-    gui.add(params, "particleCount", 2, 1000);
-    gui.add(params, "sideLength", 1, 10, 0.1);
-    gui.add(params, "maxConnections", 1, 100, 1);
-    gui.add(params, "showMesh");
-    gui.add(params, "offset", 0.1, 20, 0.5);
-
-    gui.onChange(() => {
+  const values = useControls({
+    WIDTH: { value: params.WIDTH, min: 1000, max: 9000, step: 100 },
+    spin: { value: params.spin },
+    boxOut: { value: params.boxOut, min: 1, max: 10, step: 0.1 },
+    boxIn: { value: params.boxIn, min: 1, max: 10, step: 0.1 },
+    limit: { value: params.limit, min: 5, max: 30, step: 1 },
+    maxRadius: { value: params.maxRadius, min: 1, max: 10, step: 0.1 },
+    timeSpeed: { value: params.timeSpeed, min: 0, max: 2, step: 0.01 },
+    streamSpeed: { value: params.streamSpeed, min: 0.5, max: 2, step: 0.01 },
+    boxHelperVisible: { value: params.boxHelperVisible },
+    GeometryVisible: { value: params.GeometryVisible },
+    maxParticleCount: { value: params.maxParticleCount, min: 100, max: 15000, step: 100 },
+    particleCount: { value: params.particleCount, min: 2, max: 1000 },
+    sideLength: { value: params.sideLength, min: 1, max: 10, step: 0.1 },
+    maxConnections: { value: params.maxConnections, min: 1, max: 100, step: 1 },
+    showMesh: { value: params.showMesh },
+    offset: { value: params.offset, min: 0.1, max: 40, step: 0.5 },
+    Reset: button(() => {
+      // Reset all values to their initial state
       onParamsChange(params);
-    });
+    })
+  }, { onChange: (values) => onParamsChange(values) });
 
-    return () => {
-      gui.destroy();
-    };
-  }, [onParamsChange]);
-
-  return null;
+  return null; // Leva creates its own UI, so we don't need to render anything here
 }
 
 export default ControlsGUI;
