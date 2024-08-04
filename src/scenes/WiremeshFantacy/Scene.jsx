@@ -36,17 +36,16 @@ const Scene = () => {
       camera={{ position: [0, 0, 10], fov: 60, near: 1, far: 1000 }}
     >
       <Suspense fallback={null}>
-        <ambientLight intensity={0.5} />
-        {/* <pointLight position={[10, 10, 10]} intensity={1} /> */}
-        {/* <directionalLight position={[5, 5, 5]} intensity={1} /> */}
-        <WireCube settings={cube1} />
-        <WireCube settings={cube2} />
-        {common.showWire && <GeometryBox {...mesh} />}
-        <OrbitControls />
         <EffectComposer>
-          <Bloom
-            {...bloom}
-          />
+          <ambientLight intensity={0.5} />
+          <pointLight position={[10, 10, 10]} intensity={1} />
+          <directionalLight position={[5, 5, 5]} intensity={1} />
+          <WireCube settings={cube1} />
+          <WireCube settings={cube2} />
+          {common.showWire && <GeometryBox {...mesh} />}
+          <OrbitControls />
+
+          <Bloom {...bloom} />
         </EffectComposer>
       </Suspense>
     </Canvas>
