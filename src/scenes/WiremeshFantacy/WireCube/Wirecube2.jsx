@@ -89,7 +89,7 @@ const CubeComponent = ({
 }) => {
   const geometry = useCubeGeometry(segments, cubeSize, particleSize);
   const materialRef = useRef();
-  const materialRef2 = useRef()
+  const materialRef2 = useRef();
   const { clock } = useThree();
 
   const sparkTex = useTexture(sparkTexture);
@@ -118,28 +118,34 @@ const CubeComponent = ({
       materialRef2.current.uniforms.waveScale.value = waveScale;
       materialRef2.current.uniforms.waveSpeed.value = waveSpeed;
       materialRef2.current.uniforms.waveSizeScale.value = waveSizeScale;
-      materialRef2.current.uniforms.baseColor.value = new THREE.Color(baseColor);
-      materialRef2.current.uniforms.waveColor.value = new THREE.Color(waveColor);
+      materialRef2.current.uniforms.baseColor.value = new THREE.Color(
+        baseColor
+      );
+      materialRef2.current.uniforms.waveColor.value = new THREE.Color(
+        waveColor
+      );
       materialRef2.current.uniforms.brightness.value = brightness;
     }
   });
 
   return (
     <>
-      <points geometry={geometry}>
-        <cubeMaterial
-          ref={materialRef}
-          pointTexture={sparkTex}
-          baseParticleSize={particleSize}
-        />
-      </points>
-      <lineSegments geometry={geometry}>
-        <cubeMaterial
-          ref={materialRef2}
-          pointTexture={sparkTex}
-          baseParticleSize={particleSize}
-        />
-      </lineSegments>
+      <group>
+        <points geometry={geometry}>
+          <cubeMaterial
+            ref={materialRef}
+            pointTexture={sparkTex}
+            baseParticleSize={particleSize}
+          />
+        </points>
+        <lineSegments geometry={geometry}>
+          <cubeMaterial
+            ref={materialRef2}
+            pointTexture={sparkTex}
+            baseParticleSize={particleSize}
+          />
+        </lineSegments>
+      </group>
     </>
   );
 };
