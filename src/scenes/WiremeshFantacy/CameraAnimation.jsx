@@ -4,9 +4,9 @@ import * as THREE from "three";
 
 const CameraAnimation = ({
   center = [0, 0, 0],
-  amplitude,
-  speed,
-  FOV: fovAmplitude,
+  amplitude = 1,
+  speed = 1,
+  FOV: fovAmplitude = 1,
   tiltAngle = 70, // Новый проп для угла наклона камеры
 }) => {
   const { camera, scene } = useThree();
@@ -41,7 +41,7 @@ const CameraAnimation = ({
     const newFOV = initialFOV + Math.sin(t) * fovAmplitude * 1.5;
     camera.fov = newFOV;
     camera.updateProjectionMatrix();
-  
+
     camera.lookAt(centerRef.current);
   });
 
