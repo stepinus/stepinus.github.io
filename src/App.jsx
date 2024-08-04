@@ -5,7 +5,7 @@ import Mesh from "./scenes/WiremeshFantacy";
 import "./styles.css"; // Импортируем стили
 
 const App = () => {
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(1);
 
   return (
     <div className="app">

@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useLoader } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { createCubeLines, createCubePoints } from "./utils";
+import sparkTextureFile from './spark1.png'
 
 // Import your custom shaders
 import vertexShader from "./shaders/vertex.glsl";
@@ -36,7 +37,15 @@ const BloomCube = ({
     () => createCubeLines(segments, scale),
     [segments, scale]
   );
-
+  const sparkTexture = useLoader(
+    THREE.TextureLoader,
+    sparkTextureFile,
+    undefined,
+    (error) => {
+      console.error("Error loading texture:", error);
+      setTextureError(error);
+    }
+  );
   const geometry = useMemo(() => {
     const geo = new THREE.BufferGeometry();
     geo.setAttribute(
@@ -61,9 +70,7 @@ const BloomCube = ({
     return new THREE.ShaderMaterial({
       uniforms: {
         pointTexture: {
-          value: new THREE.TextureLoader().load(
-            "/path/to/your/spark-texture.png"
-          ),
+          value: sparkTexture
         },
         time: { value: 0 },
         intensity: { value: deformIntensity },
@@ -100,11 +107,37 @@ const BloomCube = ({
     brightness,
   ]);
 
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
-    material.uniforms.time.value = time * deformSpeed;
-  });
+  // useFrame((state) => {
+  //   const time = state.clock.getElapsedTime();
+  //   material.uniforms.time.value = time * deformSpeed;
+  // });
 
+  useFrame((state, delta) => {
+    const time = state.clock.getElapsedTime();
+
+    if (pointsRef.current && linesRef.current) {
+      pointsRef.current.rotation.x += 0.002;
+      pointsRef.current.rotation.y += 0.002;
+      linesRef.current.rotation.x += 0.002;
+      linesRef.current.rotation.y += 0.002;
+
+      const material = pointsRef.current.material;
+      material.uniforms.time.value = time;
+      material.uniforms.intensity.value = settings.deformIntensity;
+      material.uniforms.frequency.value = settings.deformFrequency;
+      material.uniforms.amplitude.value = settings.deformAmplitude;
+      material.uniforms.isDeformActive.value = settings.isDeformActive;
+      material.uniforms.isWaveSizeActive.value = settings.isWaveSizeActive;
+      material.uniforms.waveScale.value = settings.waveScale;
+      material.uniforms.waveSpeed.value = settings.waveSpeed;
+      material.uniforms.waveSizeScale.value = settings.waveSizeScale;
+      material.uniforms.baseParticleSize.value = settings.particleSize;
+      // material.uniforms.waveColor.value.setRGB(settings.waveColor);
+      // material.uniforms.baseColor.value.setRGB(settings.baseColor);
+
+      linesRef.current.material = material;
+    }
+  });
   return (
     <EffectComposer>
       <Bloom
