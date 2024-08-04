@@ -193,8 +193,10 @@ float calculatePointSize(vec3 position) {
 
     return (noiseValue + 1.0) * 0.5 * waveSizeScale + baseParticleSize;
 }
+varying vec2 vUv;
 
 void main() {
+    vUv = uv;
     vIsPoint = isPoint;
     vNormal = normalMatrix * normal;
     vec3 newPosition = position;
