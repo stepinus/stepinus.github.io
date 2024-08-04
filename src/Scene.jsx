@@ -1,7 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { useControls } from "leva";
-import FogParticleBox from "./objects/FogParticleBox";
 import ParticleBox from "./objects/ParticleBox";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { Color } from "three";

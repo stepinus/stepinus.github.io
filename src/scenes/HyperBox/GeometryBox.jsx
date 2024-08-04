@@ -9,7 +9,7 @@ function NeuralNetwork({
   sideLength = 4,
   particleCount = 100,
   minDistance = 4,
-  color = "white",
+  color = '#ffffff',
   colorpos=0,
   vertexpos=0,
   numConnected=0

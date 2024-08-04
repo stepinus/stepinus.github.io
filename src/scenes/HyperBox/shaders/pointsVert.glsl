@@ -52,6 +52,7 @@ void main() {
   float mixVal = clamp((hbOut - maxBoxPos) / (hbOut - hbIn), 0., 1.);
   //vColor = mix(vec3(0.651, 0.569, 0.314), vec3(1), mixVal);
   vColor = neonGradient(mixVal);
+  
 
   vPosition = pos;
 

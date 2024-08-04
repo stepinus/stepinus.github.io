@@ -70,6 +70,7 @@ export default function Scene() {
     aColor: [0.02, 0.12, 0.36],
     bColor: [0.75, 0.78, 0.82],
     cColor: [0.73, 0.04, 0.57],
+    mColor: '#ffffff',
     colorpos: 0,
     umConnected: 0,
   });
