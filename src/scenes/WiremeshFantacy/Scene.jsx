@@ -10,7 +10,22 @@ import { Suspense } from "react";
 
 const Scene = () => {
   const cube1 = useControls("innerCube", innerCube);
+  const cube2 = useControls("outerCobe", outerCube);
+  const mesh = useControls("mesh", {
+    maxConnections: { value: 20, min: 1, max: 100, step: 1 },
+    maxParticleCount: { value: 200, min: 10, max: 1000, step: 10 },
+    sideLength: { value: 20, min: 1, max: 100, step: 1 },
+    minDistance: { value: 1, min: 0.1, max: 10, step: 0.1 },
+    umConnected: { value: 1, min: 0, max: 1, step: 0.1 },
+    meshColor: { value: "#ffffff" },
+  });
   const common = useControls("common", { showWire: false });
+  const bloom = useControls("bloom", {
+    bloomIntensity: { value: 1.5, min: 0, max: 3, step: 0.1 },
+    bloomLuminanceThreshold: { value: 0.1, min: 0, max: 1, step: 0.01 },
+    bloomLuminanceSmoothing: { value: 0.9, min: 0, max: 1, step: 0.01 },
+    bloomRadius: { value: 0.8, min: 0, max: 1, step: 0.01 },
+  });
   // const cube2 = useControls("outerCube", outerCube);
 
   return (
@@ -25,14 +40,12 @@ const Scene = () => {
         {/* <pointLight position={[10, 10, 10]} intensity={1} /> */}
         {/* <directionalLight position={[5, 5, 5]} intensity={1} /> */}
         <WireCube settings={cube1} />
-        {common.showWire.value && <GeometryBox />}
+        <WireCube settings={cube2} />
+        {common.showWire && <GeometryBox {...mesh} />}
         <OrbitControls />
         <EffectComposer>
           <Bloom
-            intensity={1.5}
-            luminanceThreshold={0.1}
-            luminanceSmoothing={0.9}
-            radius={0.8}
+            {...bloom}
           />
         </EffectComposer>
       </Suspense>
