@@ -63,141 +63,61 @@ const WireCube = ({ settings }) => {
     );
   }
 
-  // const shaderMaterial = useMemo(() => {
-  //   console.log("Creating shader material...");
-  //   const mat = new THREE.ShaderMaterial({
-  //     uniforms: {
-  //       pointTexture: { value: sparkTexture },
-  //       time: { value: 0 },
-  //       intensity: { value: settings.deformIntensity },
-  //       frequency: { value: settings.deformFrequency },
-  //       amplitude: { value: settings.deformAmplitude },
-  //       isDeformActive: { value: settings.isDeformActive },
-  //       isWaveSizeActive: { value: settings.isWaveSizeActive },
-  //       waveScale: { value: settings.waveScale },
-  //       waveSpeed: { value: settings.waveSpeed },
-  //       waveSizeScale: { value: settings.waveSizeScale },
-  //       baseParticleSize: { value: settings.particleSize },
-  //       baseColor: { value: new THREE.Color(settings.baseColor) },
-  //       waveColor: { value: new THREE.Color(settings.waveColor) },
-  //       brightness: { value: settings.brightness },
-  //     },
-  //     vertexShader,
-  //     fragmentShader,
-  //     transparent: false,
-  //     depthWrite: false,
-  //     blending: THREE.AdditiveBlending,
-  //   });
-  //   console.log("Shader material created");
-  //   return mat
-  // }, [settings, sparkTexture]);
-
-  // useFrame((state, delta) => {
-  //   const time = state.clock.getElapsedTime();
-
-  //   if (pointsRef.current && linesRef.current) {
-  //     pointsRef.current.rotation.x += 0.002;
-  //     pointsRef.current.rotation.y += 0.002;
-  //     linesRef.current.rotation.x += 0.002;
-  //     linesRef.current.rotation.y += 0.002;
-
-  //     const material = pointsRef.current.material;
-  //     material.uniforms.time.value = time;
-  //     material.uniforms.intensity.value = settings.deformIntensity;
-  //     material.uniforms.frequency.value = settings.deformFrequency;
-  //     material.uniforms.amplitude.value = settings.deformAmplitude;
-  //     material.uniforms.isDeformActive.value = settings.isDeformActive;
-  //     material.uniforms.isWaveSizeActive.value = settings.isWaveSizeActive;
-  //     material.uniforms.waveScale.value = settings.waveScale;
-  //     material.uniforms.waveSpeed.value = settings.waveSpeed;
-  //     material.uniforms.waveSizeScale.value = settings.waveSizeScale;
-  //     material.uniforms.baseParticleSize.value = settings.particleSize;
-  //     material.uniforms.waveColor.value.setRGB(settings.waveColor);
-  //     material.uniforms.baseColor.value.setRGB(settings.baseColor);
-
-  //     linesRef.current.material = material;
-  //   }
-  // });
   const shaderMaterial = useMemo(() => {
-    console.log('Creating shader material...');
-    return new THREE.ShaderMaterial({
+    console.log("Creating shader material...");
+    const mat = new THREE.ShaderMaterial({
       uniforms: {
+        pointTexture: { value: sparkTexture },
         time: { value: 0 },
+        intensity: { value: settings.deformIntensity },
+        frequency: { value: settings.deformFrequency },
+        amplitude: { value: settings.deformAmplitude },
+        isDeformActive: { value: settings.isDeformActive },
+        isWaveSizeActive: { value: settings.isWaveSizeActive },
+        waveScale: { value: settings.waveScale },
+        waveSpeed: { value: settings.waveSpeed },
+        waveSizeScale: { value: settings.waveSizeScale },
+        baseParticleSize: { value: settings.particleSize },
         baseColor: { value: new THREE.Color(settings.baseColor) },
         waveColor: { value: new THREE.Color(settings.waveColor) },
         brightness: { value: settings.brightness },
-        deformIntensity: { value: settings.deformIntensity },
-        deformFrequency: { value: settings.deformFrequency },
-        deformAmplitude: { value: settings.deformAmplitude },
-        waveSpeed: { value: settings.waveSpeed },
       },
-      vertexShader: `
-        attribute float size;
-        attribute float isPoint;
-        varying float vIsPoint;
-        varying vec3 vPosition;
-        
-        uniform float time;
-        uniform float deformIntensity;
-        uniform float deformFrequency;
-        uniform float deformAmplitude;
-        
-        void main() {
-          vIsPoint = isPoint;
-          vPosition = position;
-          
-          // Apply deformation
-          vec3 deformed = position;
-          deformed.x += sin(position.y * deformFrequency + time) * deformAmplitude * deformIntensity;
-          deformed.y += sin(position.z * deformFrequency + time) * deformAmplitude * deformIntensity;
-          deformed.z += sin(position.x * deformFrequency + time) * deformAmplitude * deformIntensity;
-          
-          vec4 mvPosition = modelViewMatrix * vec4(deformed, 1.0);
-          gl_Position = projectionMatrix * mvPosition;
-          gl_PointSize = size * (300.0 / -mvPosition.z);
-        }
-      `,
-      fragmentShader: `
-        uniform vec3 baseColor;
-        uniform vec3 waveColor;
-        uniform float brightness;
-        uniform float time;
-        uniform float waveSpeed;
-        varying float vIsPoint;
-        varying vec3 vPosition;
-        
-        void main() {
-          if (vIsPoint > 0.5) {
-            vec2 coord = gl_PointCoord - vec2(0.5);
-            if (length(coord) > 0.5) discard;
-          }
-          
-          float wave = sin(vPosition.x * 5.0 + time * waveSpeed) * 0.5 + 0.5;
-          vec3 color = mix(baseColor, waveColor, wave) * brightness;
-          
-          gl_FragColor = vec4(color, 1.0);
-        }
-      `,
-      transparent: true,
+      vertexShader,
+      fragmentShader,
+      transparent: false,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     });
-  }, [settings]);
+    console.log("Shader material created");
+    return mat
+  }, [settings, sparkTexture]);
 
-  useFrame((state) => {
-    if (зщш.current) {
-      const { uniforms } = materialRef.current;
-      uniforms.time.value = state.clock.getElapsedTime();
-      uniforms.baseColor.value.setStyle(settings.baseColor);
-      uniforms.waveColor.value.setStyle(settings.waveColor);
-      uniforms.brightness.value = settings.brightness;
-      uniforms.deformIntensity.value = settings.deformIntensity;
-      uniforms.deformFrequency.value = settings.deformFrequency;
-      uniforms.deformAmplitude.value = settings.deformAmplitude;
-      uniforms.waveSpeed.value = settings.waveSpeed;
+  useFrame((state, delta) => {
+    const time = state.clock.getElapsedTime();
+
+    if (pointsRef.current && linesRef.current) {
+      pointsRef.current.rotation.x += 0.002;
+      pointsRef.current.rotation.y += 0.002;
+      linesRef.current.rotation.x += 0.002;
+      linesRef.current.rotation.y += 0.002;
+
+      const material = pointsRef.current.material;
+      material.uniforms.time.value = time;
+      material.uniforms.intensity.value = settings.deformIntensity;
+      material.uniforms.frequency.value = settings.deformFrequency;
+      material.uniforms.amplitude.value = settings.deformAmplitude;
+      material.uniforms.isDeformActive.value = settings.isDeformActive;
+      material.uniforms.isWaveSizeActive.value = settings.isWaveSizeActive;
+      material.uniforms.waveScale.value = settings.waveScale;
+      material.uniforms.waveSpeed.value = settings.waveSpeed;
+      material.uniforms.waveSizeScale.value = settings.waveSizeScale;
+      material.uniforms.baseParticleSize.value = settings.particleSize;
+      material.uniforms.waveColor.value.setRGB(settings.waveColor);
+      material.uniforms.baseColor.value.setRGB(settings.baseColor);
+
+      linesRef.current.material = material;
     }
   });
-
 
   useEffect(() => {
     console.log("WireCube rendered with settings:", settings);

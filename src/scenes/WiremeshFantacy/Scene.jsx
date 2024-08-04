@@ -21,22 +21,26 @@ const Scene = () => {
   });
   const common = useControls("common", { showWire: false });
   const bloom = useControls("bloom", {
-    bloomIntensity: { value: 1.5, min: 0, max: 3, step: 0.1 },
-    bloomLuminanceThreshold: { value: 0.1, min: 0, max: 1, step: 0.01 },
-    bloomLuminanceSmoothing: { value: 0.9, min: 0, max: 1, step: 0.01 },
-    bloomRadius: { value: 0.8, min: 0, max: 1, step: 0.01 },
+    bloomIntensity: { value: 2, min: 0, max: 5, step: 0.1 },
+    bloomLuminanceThreshold: { value: 0.2, min: 0, max: 1, step: 0.01 },
+    bloomLuminanceSmoothing: { value: 0.8, min: 0, max: 1, step: 0.01 },
+    bloomRadius: { value: 0.5, min: 0, max: 1, step: 0.01 },
   });
   // const cube2 = useControls("outerCube", outerCube);
 
   return (
-    <Canvas
-      gl={(canvas) =>
-        new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
-      }
-      camera={{ position: [0, 0, 10], fov: 60, near: 1, far: 1000 }}
-    >
-      <Suspense fallback={null}>
-        <EffectComposer>
+    <Suspense fallback={null}>
+      <Canvas
+        gl={(canvas) =>
+          new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+        }
+        camera={{ position: [0, 0, 10], fov: 60, near: 1, far: 1000 }}
+      >
+        <EffectComposer disableNormalPass>
+          <ambientLight intensity={0.2} />
+          <pointLight position={[10, 10, 10]} intensity={1.5} />
+          <directionalLight position={[5, 5, 5]} intensity={1.2} />
+
           <ambientLight intensity={0.5} />
           <pointLight position={[10, 10, 10]} intensity={1} />
           <directionalLight position={[5, 5, 5]} intensity={1} />
@@ -44,11 +48,19 @@ const Scene = () => {
           <WireCube settings={cube2} />
           {common.showWire && <GeometryBox {...mesh} />}
           <OrbitControls />
-
-          <Bloom {...bloom} />
+          {/* <mesh position={[0, 2, 0]}>
+            <sphereGeometry args={[0.5, 32, 32]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh> */}
+          <Bloom
+            luminanceThreshold={bloom.bloomLuminanceThreshold}
+            intensity={bloom.bloomIntensity}
+            levels={9}
+            mipmapBlur
+          />
         </EffectComposer>
-      </Suspense>
-    </Canvas>
+      </Canvas>
+    </Suspense>
   );
 };
 

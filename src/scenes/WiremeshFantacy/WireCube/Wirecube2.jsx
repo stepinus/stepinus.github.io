@@ -69,7 +69,7 @@ extend({ CubeMaterial });
 const CubeComponent = ({
   settings: {
     segments = 30,
-    scale:cubeSize = 5,
+    scale: cubeSize = 5,
     particleSize = 0.2,
     deformIntensity = 0.5,
     deformFrequency = 1,
@@ -104,8 +104,8 @@ const CubeComponent = ({
       materialRef.current.uniforms.waveScale.value = waveScale;
       materialRef.current.uniforms.waveSpeed.value = waveSpeed;
       materialRef.current.uniforms.waveSizeScale.value = waveSizeScale;
-      materialRef.current.uniforms.baseColor.value= new THREE.Color(baseColor)
-      materialRef.current.uniforms.waveColor.value= new THREE.Color(waveColor);
+      materialRef.current.uniforms.baseColor.value = new THREE.Color(baseColor);
+      materialRef.current.uniforms.waveColor.value = new THREE.Color(waveColor);
       materialRef.current.uniforms.brightness.value = brightness;
     }
   });
@@ -126,14 +126,6 @@ const CubeComponent = ({
           baseParticleSize={particleSize}
         />
       </lineSegments>
-
-      <EffectComposer>
-        <Bloom
-          intensity={bloomIntensity}
-          threshold={bloomThreshold}
-          radius={bloomRadius}
-        />
-      </EffectComposer>
     </>
   );
 };
