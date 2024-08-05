@@ -11,11 +11,18 @@ uniform float waveSpeed;
 uniform float waveSizeScale;
 uniform float baseParticleSize;
 
+// audio
+uniform float audioIntensity; // Общая интенсивность звука
+uniform float audioBass; // Интенсивность низких частот
+uniform float audioTreble; // Интенсивность высоких частот
+
 attribute float size;
 attribute float isPoint;
 
 uniform vec3 baseColor;
 uniform vec3 waveColor;
+//таймер анимации клика
+uniform float clickAnimation;
 
 varying float vIsPoint;
 varying float vGradientFactor;
@@ -205,7 +212,9 @@ void main() {
     if(isDeformActive) {
         float noiseValue = cnoise(vec3(position.x * frequency + time, position.y * frequency + time, position.z * frequency + time));
         vec3 deformation = vec3(noiseValue) * sin(time * 2.0) * amplitude * intensity;
+        deformation *= 1.0 + audioIntensity * 5.0; // Умножаем на 5.0 для усиления эффекта
         newPosition += deformation;
+
         // vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
     } else {
         vDeformationFactor = 0.0;
@@ -226,6 +235,7 @@ void main() {
 
             // Вычисляем размер точки на основе шума
             float pointSize = baseParticleSize + waveSizeScale * (noiseValue * 0.5 + 0.5);
+            pointSize *= 1.0 + audioIntensity * 3.0; // Умножаем на 3.0 для усиления эффекта
 
             // Применяем размер точки с учетом перспективы
             gl_PointSize = pointSize * (300.0 / -mvPosition.z);
@@ -242,65 +252,3 @@ void main() {
         vGradientFactor = 0.0;
     }
 }
-
-// void main() {
-//     vIsPoint = isPoint;
-//     vNormal = normalMatrix * normal;
-//     vec3 newPosition = position;
-
-//     // Применяем деформацию на основе шума, если она активна
-//     if(isDeformActive) {
-//         float noise = 3.0 * pnoise(position + time, vec3(10.0));
-//         float displacement = (frequency / 30.0) * (noise / 10.0) * amplitude * intensity;
-//         vDisplacement = displacement;
-//         newPosition += normal * displacement;
-//         vDeformationFactor = (noise + 1.0) * 0.5; // Нормализуем значение шума
-//     } else {
-//         vDeformationFactor = 0.0;
-//         vDisplacement = 0.0;
-//     }
-
-//     vec4 mvPosition = modelViewMatrix * vec4(newPosition, 1.0);
-//     gl_Position = projectionMatrix * mvPosition;
-
-//     // Устанавливаем размер точки и вычисляем градиент, если это точка
-//     // if(isPoint > 0.5) {
-//     //     if(isWaveSizeActive) {
-//     //         float waveTime = time * waveSpeed;
-//     //         vec3 noisePosition = vec3(position.x * waveScale + waveTime, position.y * waveScale + waveTime, position.z * waveScale + waveTime);
-//     //         float noiseValue = sizeNoise(noisePosition);
-//     //         float pointSize = (noiseValue + 1.0) * 0.5 * waveSizeScale + baseParticleSize;
-//     //         gl_PointSize = pointSize * (300.0 / -mvPosition.z);
-
-//     //         // Вычисляем фактор градиента
-//     //         vSizeFactor = (noiseValue + 1.0) * 0.5;
-//     //         vGradientFactor = (noiseValue + 1.0) * 0.5;
-//     //     } else {
-//     //         vSizeFactor = 0.0;
-//     //         gl_PointSize = size * (300.0 / -mvPosition.z);
-//     //         vGradientFactor = 0.0;
-//     //     }
-//     // } else {
-//     //     vSizeFactor = 0.0;
-//     //     vGradientFactor = 0.0;
-//     // }
-//      if(isPoint > 0.5) {
-//         if(isWaveSizeActive) {
-//             float waveTime = time * waveSpeed;
-//             vec3 noisePosition = vec3(newPosition.x * waveScale + waveTime, newPosition.y * waveScale + waveTime, newPosition.z * waveScale + waveTime);
-//             float noiseValue = sizeNoise(noisePosition);
-//             float pointSize = baseParticleSize + waveSizeScale * (noiseValue * 0.5 + 0.5);
-//             gl_PointSize = pointSize * (300.0 / -mvPosition.z);
-
-//             vSizeFactor = (noiseValue * 0.5 + 0.5);
-//             vGradientFactor = vSizeFactor;
-//         } else {
-//             vSizeFactor = 0.0;
-//             gl_PointSize = size * (300.0 / -mvPosition.z);
-//             vGradientFactor = 0.0;
-//         }
-//     } else {
-//         vSizeFactor = 0.0;
-//         vGradientFactor = 0.0;
-//     }
-// }

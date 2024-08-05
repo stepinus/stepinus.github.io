@@ -9,31 +9,7 @@ const App = () => {
 
   return (
     <div className="app">
-      <div className="tabs">
-        <button
-          className={`tab ${selectedTab === 0 ? "active" : ""}`}
-          onClick={() => setSelectedTab(0)}
-        >
-          HyperCube
-        </button>
-        <button
-          className={`tab ${selectedTab === 1 ? "active" : ""}`}
-          onClick={() => setSelectedTab(1)}
-        >
-          Morthing Cube
-        </button>
-      </div>
-      <button
-        className={`tab ${selectedTab === 2 ? "active" : ""}`}
-        onClick={() => setSelectedTab(2)}
-      >
-        Mesh
-      </button>
-      <div className="tab-content">
-        {selectedTab === 0 && <HyperCubeScene />}
-        {selectedTab === 1 && <Mesh/>}
-        {selectedTab === 2 && <Mesh />}
-      </div>
+      <Mesh />
     </div>
   );
 };

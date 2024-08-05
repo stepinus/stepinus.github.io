@@ -1,45 +1,49 @@
-import React, { useMemo, useRef } from "react";
+import React, {
+  useMemo,
+  useRef,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useFrame, useThree, extend } from "@react-three/fiber";
 import { shaderMaterial, useTexture } from "@react-three/drei";
 import * as THREE from "three";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
 
 // Import your assets and utility functions
 import sparkTexture from "./spark1.png";
 import vertexShader from "./shaders/vertex.glsl";
 import fragmentShader from "./shaders/fragment.glsl";
 import { createCubeLines, createCubePoints } from "./utils";
+import useAudioAnalyzer from "../../../utils/useAudio";
 
 // Custom hook for creating cube geometry
-const useCubeGeometry = (segments, cubeSize, particleSize) => {
-  return useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
+const getCubeGeometry = (segments, cubeSize, particleSize) => {
+  const geometry = new THREE.BufferGeometry();
 
-    const {
-      particles,
-      sizes,
-      isPoint: pointIsPoint,
-    } = createCubePoints(segments, cubeSize, particleSize);
-    const { lines, isPoint: lineIsPoint } = createCubeLines(segments, cubeSize);
+  const {
+    particles,
+    sizes,
+    isPoint: pointIsPoint,
+  } = createCubePoints(segments, cubeSize, particleSize);
+  const { lines, isPoint: lineIsPoint } = createCubeLines(segments, cubeSize);
 
-    geometry.setAttribute(
-      "position",
-      new THREE.Float32BufferAttribute([...particles, ...lines], 3)
-    );
-    geometry.setAttribute(
-      "size",
-      new THREE.Float32BufferAttribute(
-        [...sizes, ...new Array(lines.length / 3).fill(1)],
-        1
-      )
-    );
-    geometry.setAttribute(
-      "isPoint",
-      new THREE.Float32BufferAttribute([...pointIsPoint, ...lineIsPoint], 1)
-    );
+  geometry.setAttribute(
+    "position",
+    new THREE.Float32BufferAttribute([...particles, ...lines], 3)
+  );
+  geometry.setAttribute(
+    "size",
+    new THREE.Float32BufferAttribute(
+      [...sizes, ...new Array(lines.length / 3).fill(1)],
+      1
+    )
+  );
+  geometry.setAttribute(
+    "isPoint",
+    new THREE.Float32BufferAttribute([...pointIsPoint, ...lineIsPoint], 1)
+  );
 
-    return geometry;
-  }, [segments, cubeSize, particleSize]);
+  return geometry;
 };
 
 // Custom shader material
@@ -59,6 +63,10 @@ const CubeMaterial = shaderMaterial(
     baseColor: new THREE.Color(),
     waveColor: new THREE.Color(),
     brightness: 0.8,
+    audioIntensity: 0,
+    audioBass: 0,
+    audioTreble: 0,
+    clickAnimation: 0,
   },
   vertexShader,
   fragmentShader
@@ -67,6 +75,8 @@ const CubeMaterial = shaderMaterial(
 extend({ CubeMaterial });
 
 const CubeComponent = ({
+  isListening,
+  soundRef,
   settings: {
     segments = 30,
     scale: cubeSize = 5,
@@ -87,14 +97,53 @@ const CubeComponent = ({
     bloomRadius = 0.2,
   },
 }) => {
-  const geometry = useCubeGeometry(segments, cubeSize, particleSize);
+  const geometry = useMemo(() => {
+    return getCubeGeometry(segments, cubeSize, particleSize);
+  }, [segments, cubeSize, particleSize]);
+
   const materialRef = useRef();
-  const materialRef2 = useRef();
-  const { clock } = useThree();
-
+  // const materialRef2 = useRef();
   const sparkTex = useTexture(sparkTexture);
+  const { clock } = useThree();
+  const analyser = useRef();
+  const analyserRef = useRef();
+  useEffect(() => {
+    if (isListening) {
+      console.log("ref");
+      analyserRef.current = new THREE.AudioAnalyser(soundRef.current, 32);
+    }
+    if (soundRef && soundRef.current) {
+    }
+  }, [isListening]);
 
-  useFrame(() => {
+  const processAudioData = (data) => {
+    if (!data || data.length === 0) {
+      console.warn("No audio data available");
+      return { bass: 0, treble: 0, intensity: 0 };
+    }
+
+    const bass = data.slice(0, 8).reduce((a, b) => a + b, 0) / 8;
+    const treble = data.slice(24).reduce((a, b) => a + b, 0) / 8;
+    const intensity = data.reduce((a, b) => a + b, 0) / 32;
+
+    console.log("Processed audio data:", { bass, treble, intensity });
+
+    return {
+      bass: bass / 255,
+      treble: treble / 255,
+      intensity: intensity / 255,
+    };
+  };
+
+  useFrame((state, delta) => {
+    // console.log(soundRef);
+    if (analyserRef.current && materialRef.current) {
+      // Убедитесь, что эти значения не равны нулю или очень малы
+      const intencity = analyserRef.current.getAverageFrequency() / 255;
+      materialRef.current.uniforms.audioIntensity.value = intencity;
+      console.log(intencity);
+    }
+
     if (materialRef.current) {
       materialRef.current.uniforms.time.value = clock.getElapsedTime();
       materialRef.current.uniforms.intensity.value = deformIntensity;
@@ -108,44 +157,25 @@ const CubeComponent = ({
       materialRef.current.uniforms.baseColor.value = new THREE.Color(baseColor);
       materialRef.current.uniforms.waveColor.value = new THREE.Color(waveColor);
       materialRef.current.uniforms.brightness.value = brightness;
-
-      materialRef2.current.uniforms.time.value = clock.getElapsedTime();
-      materialRef2.current.uniforms.intensity.value = deformIntensity;
-      materialRef2.current.uniforms.frequency.value = deformFrequency;
-      materialRef2.current.uniforms.amplitude.value = deformAmplitude;
-      materialRef2.current.uniforms.isDeformActive.value = isDeformActive;
-      materialRef2.current.uniforms.isWaveSizeActive.value = isWaveSizeActive;
-      materialRef2.current.uniforms.waveScale.value = waveScale;
-      materialRef2.current.uniforms.waveSpeed.value = waveSpeed;
-      materialRef2.current.uniforms.waveSizeScale.value = waveSizeScale;
-      materialRef2.current.uniforms.baseColor.value = new THREE.Color(
-        baseColor
-      );
-      materialRef2.current.uniforms.waveColor.value = new THREE.Color(
-        waveColor
-      );
-      materialRef2.current.uniforms.brightness.value = brightness;
     }
   });
 
   return (
     <>
-      <group>
-        <points geometry={geometry}>
-          <cubeMaterial
-            ref={materialRef}
-            pointTexture={sparkTex}
-            baseParticleSize={particleSize}
-          />
-        </points>
-        <lineSegments geometry={geometry}>
-          <cubeMaterial
-            ref={materialRef2}
-            pointTexture={sparkTex}
-            baseParticleSize={particleSize}
-          />
-        </lineSegments>
-      </group>
+      <points geometry={geometry}>
+        <cubeMaterial
+          ref={materialRef}
+          pointTexture={sparkTex}
+          baseParticleSize={particleSize}
+        />
+      </points>
+      <lineSegments geometry={geometry}>
+        <cubeMaterial
+          ref={materialRef}
+          pointTexture={sparkTex}
+          baseParticleSize={particleSize}
+        />
+      </lineSegments>
     </>
   );
 };

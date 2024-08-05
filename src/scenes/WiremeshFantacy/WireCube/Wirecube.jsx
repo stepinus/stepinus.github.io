@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState, useEffect } from "react";
-import { useFrame, useLoader } from "@react-three/fiber";
+import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { createCubePoints, createCubeLines } from "./utils";
 import vertexShader from "./shaders/vertex.glsl";
@@ -22,7 +22,6 @@ const WireCube = ({ settings }) => {
   );
   const geometry = useMemo(() => {
     console.log("Creating geometry...");
-
     const cubeSize = settings.scale;
     const segments = Math.round(settings.segments);
 
@@ -89,8 +88,9 @@ const WireCube = ({ settings }) => {
       blending: THREE.AdditiveBlending,
     });
     console.log("Shader material created");
-    return mat
+    return mat;
   }, [settings, sparkTexture]);
+  const { clock } = useThree();
 
   useFrame((state, delta) => {
     const time = state.clock.getElapsedTime();

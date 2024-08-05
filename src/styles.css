@@ -36,6 +36,8 @@ body {
 
 .app {
   font-family: Arial, sans-serif;
+  padding: 0;
+  background-color: black;
   height: 100%;
 }
 
