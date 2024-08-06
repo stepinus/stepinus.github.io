@@ -215,7 +215,7 @@ void main() {
         deformation *= 1.0 + audioIntensity * 5.0; // Умножаем на 5.0 для усиления эффекта
         newPosition += deformation;
 
-        // vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
+        vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
     } else {
         vDeformationFactor = 0.0;
     }

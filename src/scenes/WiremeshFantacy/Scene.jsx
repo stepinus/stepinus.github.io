@@ -67,7 +67,6 @@ const Scene = () => {
     console.log("!");
     if (!init) setInit(true);
   };
-
   return (
     <>
       {!init && <EntryOverlay onStart={handleInit} />}

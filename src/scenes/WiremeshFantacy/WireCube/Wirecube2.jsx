@@ -178,9 +178,17 @@ const CubeComponent = ({
       updateMaterial(materialRef2.current.uniforms);
     }
   });
-
+  const { camera } = useThree();
   return (
-    <mesh>
+    <mesh
+      onClick={(e) => {
+        e.stopPropagation();
+        console.log("position");
+        console.log(JSON.stringify(camera.position, null, 2));
+        console.log("rotation");
+        console.log(JSON.stringify(camera.rotation, null, 2));
+      }}
+    >
       <group>
         <points geometry={geometry} ref={meshRef}>
           <cubeMaterial
