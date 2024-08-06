@@ -75,6 +75,7 @@ const CubeMaterial = shaderMaterial(
 extend({ CubeMaterial });
 
 const CubeComponent = ({
+  bloomLayer,
   isListening,
   soundRef,
   settings: {
@@ -102,11 +103,17 @@ const CubeComponent = ({
   }, [segments, cubeSize, particleSize]);
 
   const materialRef = useRef();
-  // const materialRef2 = useRef();
+  const materialRef2 = useRef();
   const sparkTex = useTexture(sparkTexture);
   const { clock } = useThree();
-  const analyser = useRef();
   const analyserRef = useRef();
+  const meshRef = useRef();
+  useEffect(() => {
+    if (meshRef.current) {
+      meshRef.current.layers.enable(bloomLayer);
+    }
+  }, [bloomLayer]);
+
   useEffect(() => {
     if (isListening) {
       console.log("ref");
@@ -134,9 +141,29 @@ const CubeComponent = ({
       intensity: intensity / 255,
     };
   };
+  const handleClick = useCallback((e) => {
+    e.stopPropagation(); // Останавливаем всплытие события
+    if (e.object === meshRef.current) {
+      console.log("Клик по кубу!");
+      // Здесь можно добавить дополнительную логику
+    }
+  }, []);
 
+  const updateMaterial = (uniforms) => {
+    uniforms.intensity.value = deformIntensity;
+    uniforms.time.value = clock.getElapsedTime();
+    uniforms.frequency.value = deformFrequency;
+    uniforms.amplitude.value = deformAmplitude;
+    uniforms.isDeformActive.value = isDeformActive;
+    uniforms.isWaveSizeActive.value = isWaveSizeActive;
+    uniforms.waveScale.value = waveScale;
+    uniforms.waveSpeed.value = waveSpeed;
+    uniforms.waveSizeScale.value = waveSizeScale;
+    uniforms.baseColor.value = new THREE.Color(baseColor);
+    uniforms.waveColor.value = new THREE.Color(waveColor);
+    uniforms.brightness.value = brightness;
+  };
   useFrame((state, delta) => {
-    // console.log(soundRef);
     if (analyserRef.current && materialRef.current) {
       // Убедитесь, что эти значения не равны нулю или очень малы
       const intencity = analyserRef.current.getAverageFrequency() / 255;
@@ -145,38 +172,32 @@ const CubeComponent = ({
     }
 
     if (materialRef.current) {
-      materialRef.current.uniforms.time.value = clock.getElapsedTime();
-      materialRef.current.uniforms.intensity.value = deformIntensity;
-      materialRef.current.uniforms.frequency.value = deformFrequency;
-      materialRef.current.uniforms.amplitude.value = deformAmplitude;
-      materialRef.current.uniforms.isDeformActive.value = isDeformActive;
-      materialRef.current.uniforms.isWaveSizeActive.value = isWaveSizeActive;
-      materialRef.current.uniforms.waveScale.value = waveScale;
-      materialRef.current.uniforms.waveSpeed.value = waveSpeed;
-      materialRef.current.uniforms.waveSizeScale.value = waveSizeScale;
-      materialRef.current.uniforms.baseColor.value = new THREE.Color(baseColor);
-      materialRef.current.uniforms.waveColor.value = new THREE.Color(waveColor);
-      materialRef.current.uniforms.brightness.value = brightness;
+      updateMaterial(materialRef.current.uniforms);
+    }
+    if (materialRef2.current) {
+      updateMaterial(materialRef2.current.uniforms);
     }
   });
 
   return (
-    <>
-      <points geometry={geometry}>
-        <cubeMaterial
-          ref={materialRef}
-          pointTexture={sparkTex}
-          baseParticleSize={particleSize}
-        />
-      </points>
-      <lineSegments geometry={geometry}>
-        <cubeMaterial
-          ref={materialRef}
-          pointTexture={sparkTex}
-          baseParticleSize={particleSize}
-        />
-      </lineSegments>
-    </>
+    <mesh>
+      <group>
+        <points geometry={geometry} ref={meshRef}>
+          <cubeMaterial
+            ref={materialRef}
+            pointTexture={sparkTex}
+            baseParticleSize={particleSize}
+          />
+        </points>
+        <lineSegments geometry={geometry}>
+          <cubeMaterial
+            ref={materialRef2}
+            pointTexture={sparkTex}
+            baseParticleSize={particleSize}
+          />
+        </lineSegments>
+      </group>
+    </mesh>
   );
 };
 

@@ -10,7 +10,7 @@ import { Suspense } from "react";
 import CameraAnimation from "./CameraAnimation";
 import WireCube from "./WireCube/Wirecube2";
 import file from "../../assets/Interview.mp3";
-
+import EntryOverlay from "../../utils/EntryOverlay";
 const Scene = () => {
   const { turnOndolly } = useControls("dolly", {
     turnOndolly: { value: false },
@@ -18,10 +18,10 @@ const Scene = () => {
   const inner = useControls("innerCube", innerCube);
   const outer = useControls("outerCobe", outerCube);
   const bloom = useControls("bloom", {
-    bloomIntensity: { value: 2, min: 0, max: 5, step: 0.1 },
-    bloomLuminanceThreshold: { value: 0.2, min: 0, max: 1, step: 0.01 },
-    bloomLuminanceSmoothing: { value: 0.8, min: 0, max: 1, step: 0.01 },
-    bloomRadius: { value: 0.5, min: 0, max: 1, step: 0.01 },
+    bloomIntensity: { value: 5.0, min: 0, max: 5, step: 0.1 },
+    bloomLuminanceThreshold: { value: 0.02, min: 0, max: 1, step: 0.01 },
+    bloomLuminanceSmoothing: { value: 0.03, min: 0, max: 1, step: 0.01 },
+    bloomRadius: { value: 0.26, min: 0, max: 1, step: 0.01 },
   });
   const {
     meshColor,
@@ -56,6 +56,9 @@ const Scene = () => {
   const [isSoundReady, setIsSoundReady] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioType = "file";
+  // const handleInit = () => {
+  //   setInit(true);
+  // };
   const toggleSound = () => {
     if (!soundRef.current) return;
     if (isPlaying) {
@@ -86,10 +89,12 @@ const Scene = () => {
   const stopListening = () => {};
   const switchAudioType = () => {};
   const handleInit = () => {
-    if (!init) setInit;
+    console.log('!')
+    if (!init) setInit(true);
   };
   return (
     <>
+      {!init && <EntryOverlay onStart={handleInit} />}
       <Canvas
         gl={(canvas) =>
           new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
@@ -123,6 +128,7 @@ const Scene = () => {
           </EffectComposer>
         </Suspense>
       </Canvas>
+
       <div style={{ position: "absolute", top: 10, left: 10 }}>
         <button onClick={toggleSound} disabled={!isSoundReady}>
           Start Listening

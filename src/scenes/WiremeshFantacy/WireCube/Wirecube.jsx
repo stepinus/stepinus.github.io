@@ -114,8 +114,6 @@ const WireCube = ({ settings }) => {
       material.uniforms.baseParticleSize.value = settings.particleSize;
       material.uniforms.waveColor.value.setRGB(settings.waveColor);
       material.uniforms.baseColor.value.setRGB(settings.baseColor);
-
-      linesRef.current.material = material;
     }
   });
 
