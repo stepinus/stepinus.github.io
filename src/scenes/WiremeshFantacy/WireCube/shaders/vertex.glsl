@@ -210,12 +210,12 @@ void main() {
 
     // Оригинальная деформация
     if(isDeformActive) {
-        float noiseValue = cnoise(vec3(position.x * frequency, position.y * frequency + time, position.z * frequency));
-        vec3 deformation = vec3(0.0, noiseValue, 0.0) * sin(time * 2.0) * amplitude * intensity;
-        deformation *= 1.0 + audioIntensity * 5.0;
+        float noiseValue = cnoise(vec3(position.x * frequency + time, position.y * frequency + time, position.z * frequency + time));
+        vec3 deformation = vec3(noiseValue) * sin(time * 2.0) * amplitude * intensity;
+        deformation *= 1.0 + audioIntensity * 5.0; // Умножаем на 5.0 для усиления эффекта
         newPosition += deformation;
 
-        vDeformationFactor = (noiseValue + 1.0) * 0.5;
+        vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
     } else {
         vDeformationFactor = 0.0;
     }
@@ -244,7 +244,7 @@ void main() {
             vGradientFactor = vSizeFactor;
         } else {
             vSizeFactor = 0.0;
-            gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + audioIntensity * 3.0); // Добавляем влияние audioIntensity
+        gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + audioIntensity * 3.0); // Добавляем влияние audioIntensity
             vGradientFactor = 0.0;
         }
     } else {
