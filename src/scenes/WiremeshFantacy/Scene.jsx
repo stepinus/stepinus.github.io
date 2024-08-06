@@ -104,7 +104,7 @@ const Scene = () => {
                 // seed={2}
                 scale={10}
                 volume={2}
-                color="#333333"
+                color="#111111"
                 fade={30}
                 opacity={0.3}
                 speed={0.5}
