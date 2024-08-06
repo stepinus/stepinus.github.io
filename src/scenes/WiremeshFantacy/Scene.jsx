@@ -99,14 +99,15 @@ const Scene = () => {
             <Clouds material={THREE.MeshBasicMaterial}>
               <Cloud
                 concentrate="outside"
-                segments={50}
-                bounds={6}
-                seed={2}
+                segments={20}
+                // bounds={6}
+                // seed={2}
                 scale={10}
-                volume={6}
-                color="#000000"
-                fade={100}
-                speed={1}
+                volume={2}
+                color="#333333"
+                fade={30}
+                opacity={0.3}
+                speed={0.5}
               />
             </Clouds>
             <Bloom
