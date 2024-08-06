@@ -171,9 +171,9 @@ const CubeComponent = ({
       console.log(intencity);
     }
 
-    if (materialRef.current) {
-      updateMaterial(materialRef.current.uniforms);
-    }
+    // if (materialRef.current) {
+    //   updateMaterial(materialRef.current.uniforms);
+    // }
     if (materialRef2.current) {
       updateMaterial(materialRef2.current.uniforms);
     }

@@ -23,32 +23,7 @@ const Scene = () => {
     bloomLuminanceSmoothing: { value: 0.03, min: 0, max: 1, step: 0.01 },
     bloomRadius: { value: 0.26, min: 0, max: 1, step: 0.01 },
   });
-  const {
-    meshColor,
-    particleCount,
-    sideLength,
-    maxConnections,
-    showMesh,
-    maxParticleCount,
-  } = useControls("mesh", {
-    meshColor: "white",
-    particleCount: { value: 50, min: 2, max: 1000 },
-    sideLength: { value: 2, min: 1, max: 10, step: 0.1 },
-    minDistance: { value: 1, min: 0.1, max: 10, step: 0.1 },
-    maxConnections: {
-      value: 1000,
-      min: 1,
-      max: 100,
-      step: 1,
-    },
-    showMesh: { value: false },
-    maxParticleCount: {
-      value: 10000,
-      min: 100,
-      max: 15000,
-      step: 100,
-    },
-  });
+
   const [init, setInit] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [soundA, setSoundA] = useState();
@@ -89,7 +64,7 @@ const Scene = () => {
   const stopListening = () => {};
   const switchAudioType = () => {};
   const handleInit = () => {
-    console.log('!')
+    console.log("!");
     if (!init) setInit(true);
   };
   return (
@@ -99,18 +74,20 @@ const Scene = () => {
         gl={(canvas) =>
           new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
         }
-        camera={{ near: 1, far: 100 }}
+        camera={{
+          fov: 75,
+          near: 1,
+          far: 100,
+          position: [0, -1, 5], // x, y, z
+        }}
       >
         <Suspense fallback={null}>
           {/* <Perf position="top-left"/> */}
           <EffectComposer disableNormalPass>
             {turnOndolly ? <CameraAnimation /> : <OrbitControls />}
-            <ambientLight intensity={0.2} />
-            <pointLight position={[10, 10, 10]} intensity={1.5} />
-            <directionalLight position={[5, 5, 5]} intensity={1.2} />
+            {/* <pointLight position={[10, 10, 10]} intensity={1.5} /> */}
+            {/* <directionalLight position={[5, 5, 5]} intensity={1.2} /> */}
             <ambientLight intensity={0.5} />
-            <pointLight position={[10, 10, 10]} intensity={1} />
-            <directionalLight position={[5, 5, 5]} intensity={1} />
             <WireCube
               settings={outer}
               isOuter
@@ -122,7 +99,7 @@ const Scene = () => {
             <Bloom
               luminanceThreshold={bloom.bloomLuminanceThreshold}
               intensity={bloom.bloomIntensity}
-              levels={9}
+              levels={5}
               mipmapBlur
             />
           </EffectComposer>
