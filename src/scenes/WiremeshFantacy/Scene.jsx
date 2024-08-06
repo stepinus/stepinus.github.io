@@ -18,9 +18,9 @@ const Scene = () => {
   const inner = useControls("innerCube", innerCube);
   const outer = useControls("outerCobe", outerCube);
   const bloom = useControls("bloom", {
-    bloomIntensity: { value: 5.0, min: 0, max: 10, step: 0.1 },
+    bloomIntensity: { value: 4.9, min: 0, max: 10, step: 0.1 },
     bloomLuminanceThreshold: { value: 0.02, min: 0, max: 1, step: 0.01 },
-    bloomLuminanceSmoothing: { value: 0.03, min: 0, max: 1, step: 0.01 },
+    bloomLuminanceSmoothing: { value: 0.02, min: 0, max: 1, step: 0.01 },
     bloomRadius: { value: 0.26, min: 0, max: 1, step: 0.01 },
   });
 
@@ -67,6 +67,20 @@ const Scene = () => {
     console.log("!");
     if (!init) setInit(true);
   };
+  position
+index-lzI7S0ua.js:4458 {
+  "x": 3.510035276332466,
+  "y": 2.72217389643688,
+  "z": 3.529901991547147
+}
+index-lzI7S0ua.js:4458 rotation
+index-lzI7S0ua.js:4458 {
+  "isEuler": true,
+  "_x": -0.8331010328663221,
+  "_y": 0.5807321034184341,
+  "_z": 0.5430953509220621,
+  "_order": "XYZ"
+}
   return (
     <>
       {!init && <EntryOverlay onStart={handleInit} />}
@@ -78,7 +92,10 @@ const Scene = () => {
           fov: 75,
           near: 1,
           far: 100,
-          position: [0, -1, 5], // x, y, z
+          rotation: [
+            -0.8331010328663221, 0.5807321034184341, 0.5430953509220621,
+          ],
+          position: [3.510035276332466, 2.72217389643688, 0.5430953509220621],
         }}
       >
         <Suspense fallback={null}>
