@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, Cloud, Clouds } from "@react-three/drei";
 import { Canvas, useLoader, useThree } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { innerCube, outerCube } from "./params";
 import * as THREE from "three";
-import NeuralNetwork from "../HyperBox/GeometryBox";
+import Fog from "./Fog/Fog";
 import { useControls } from "leva";
 import { Suspense } from "react";
 import CameraAnimation from "./CameraAnimation";
@@ -67,6 +67,7 @@ const Scene = () => {
     console.log("!");
     if (!init) setInit(true);
   };
+
   return (
     <>
       {!init && <EntryOverlay onStart={handleInit} />}
@@ -85,9 +86,9 @@ const Scene = () => {
           {/* <Perf position="top-left"/> */}
           <EffectComposer disableNormalPass>
             {turnOndolly ? <CameraAnimation /> : <OrbitControls />}
-            {/* <pointLight position={[10, 10, 10]} intensity={1.5} /> */}
-            {/* <directionalLight position={[5, 5, 5]} intensity={1.2} /> */}
-            <ambientLight intensity={0.5} />
+            <pointLight position={[10, 10, 10]} intensity={1.5} />
+            <directionalLight position={[1, 1, 1]} intensity={1.2} />
+            <ambientLight intensity={1} />
             <WireCube
               settings={outer}
               isOuter
@@ -96,6 +97,19 @@ const Scene = () => {
             />
             {outer.startSound && <Sound url={file} />}
             <WireCube settings={inner} soundRef={soundRef} />
+            <Clouds material={THREE.MeshBasicMaterial}>
+              <Cloud
+                concentrate="outside"
+                segments={50}
+                bounds={6}
+                seed={2}
+                scale={10}
+                volume={6}
+                color="#222222"
+                fade={100}
+                speed={1}
+              />
+            </Clouds>
             <Bloom
               luminanceThreshold={bloom.bloomLuminanceThreshold}
               intensity={bloom.bloomIntensity}

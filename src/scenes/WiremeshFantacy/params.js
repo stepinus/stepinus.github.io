@@ -1,6 +1,6 @@
 export const innerCube = {
   scale: { value: 2.1, min: 0.1, max: 5, step: 0.1 },
-  segments: { value: 100, min: 1, max: 500, step: 1 },
+  segments: { value: 20, min: 1, max: 500, step: 1 },
   particleSize: { value: 0.02, min: 0.001, max: 1, step: 0.001 },
   deformIntensity: { value: 2.0, min: 0, max: 5, step: 0.1 },
   deformFrequency: { value: 1.9, min: 0, max: 5, step: 0.1 },
@@ -20,7 +20,7 @@ export const innerCube = {
 };
 export const outerCube = {
   scale: { value: 3.7, min: 0.1, max: 5, step: 0.1 },
-  segments: { value: 100, min: 1, max: 500, step: 1 },
+  segments: { value: 20, min: 1, max: 500, step: 1 },
   particleSize: { value: 0.02, min: 0.001, max: 1, step: 0.001 },
   deformIntensity: { value: 1.8, min: 0, max: 5, step: 0.1 },
   deformFrequency: { value: 1.9, min: 0, max: 5, step: 0.1 },
