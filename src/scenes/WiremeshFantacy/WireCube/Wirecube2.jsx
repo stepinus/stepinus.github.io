@@ -180,19 +180,7 @@ const CubeComponent = ({
   });
   const { camera } = useThree();
   return (
-    <mesh
-      rotateX={-0.3}
-      // castShadow
-      // receiveShadow
-      onClick={(e) => {
-        e.stopPropagation();
-
-        console.log("position");
-        console.log(JSON.stringify(camera.position, null, 2));
-        console.log("rotation");
-        console.log(JSON.stringify(camera.rotation, null, 2));
-      }}
-    >
+    <mesh>
       <group>
         <points geometry={geometry} ref={meshRef}>
           <cubeMaterial
