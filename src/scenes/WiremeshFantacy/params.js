@@ -10,7 +10,7 @@ export const innerCube = {
   isDeformActive: true,
   isWaveSizeActive: true,
   waveScale: { value: 1.3, min: 0, max: 5, step: 0.1 },
-  waveSizeScale: { value: 0.01, min: 0, max: 0.1, step: 0.001 },
+  waveSizeScale: { value: 0.1, min: 0, max: 0.1, step: 0.001 },
   waveColor: { value: "#ffffff" },
   baseColor: { value: "#0000ff" },
   brightness: { value: 0.55, min: 0, max: 1, step: 0.01 },
