@@ -45,8 +45,8 @@ const Scene = () => {
   const inner = useControls("innerCube", innerCube);
   const outer = useControls("outerCobe", outerCube);
   const bloom = useControls("bloom", {
-    bloomIntensity: { value: 6.8, min: 0, max: 10, step: 0.1 },
-    bloomLuminanceThreshold: { value: 0.45, min: 0, max: 1, step: 0.01 },
+    bloomIntensity: { value: 1.7, min: 0, max: 10, step: 0.1 },
+    bloomLuminanceThreshold: { value: 0.18, min: 0, max: 1, step: 0.01 },
     bloomLuminanceSmoothing: { value: 0.02, min: 0, max: 1, step: 0.01 },
     bloomRadius: { value: 0.6, min: 0, max: 1, step: 0.01 },
   });
