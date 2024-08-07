@@ -8,7 +8,14 @@ import {
   useDepthBuffer,
 } from "@react-three/drei";
 import { Canvas, useLoader, useThree } from "@react-three/fiber";
-import { EffectComposer, Bloom, SMAA } from "@react-three/postprocessing";
+import {
+  Bloom,
+  DepthOfField,
+  EffectComposer,
+  Noise,
+  Vignette,
+  SMAA,
+} from "@react-three/postprocessing";
 import { innerCube, outerCube } from "./params";
 import * as THREE from "three";
 import Fog from "./Fog/Fog";
@@ -147,10 +154,19 @@ Wirecube2.jsx:192 {
         <Suspense fallback={null}>
           {/* <Perf position="top-left"/> */}
           <EffectComposer disableNormalPass>
+            {/* <DepthOfField
+              focusDistance={1}
+              focalLength={0.02}
+              bokehScale={0.5}
+              height={480}
+            /> */}
+            {/* <Noise opacity={0.02} /> */}
+            {/* <Vignette eskil={false} offset={0.1} darkness={1.1} /> */}
             <OrbitControls />
             <directionalLight
-              position={[0, -55, 40]}
+              position={[0, -40, 40]}
               intensity={1}
+              // color={"#aaaaff"}
               castShadow
             />
             {/* <pointLight position={[0, 5, 20]} intensity={0.5} castShadow />
@@ -190,6 +206,7 @@ Wirecube2.jsx:192 {
               luminanceThreshold={bloom.bloomLuminanceThreshold}
               intensity={bloom.bloomIntensity}
               levels={10}
+              // height={100}
               mipmapBlur
             />
             <SMAA />
