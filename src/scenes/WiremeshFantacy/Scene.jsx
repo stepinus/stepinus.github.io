@@ -19,15 +19,15 @@ import file from "../../assets/Interview.mp3";
 import EntryOverlay from "../../utils/EntryOverlay";
 
 const DEFAULT_CAMERA_POSITION = {
-  x: 3.5718132718028586,
-  y: 3.1344864652046676,
-  z: 3.8048322771610597,
+  x: 4.4010880234659835,
+  y: 4.0303812391399205,
+  z: 4.499762925935514,
 };
 
 const DEFAULT_CAMERA_ROTATION = {
-  x: -0.6890958802706313,
-  y: 0.6270148913907763,
-  z: 0.4502458889464728,
+  x: -0.7304273690283395,
+  y: 0.6296342694833126,
+  z: 0.4853460110747146,
 };
 
 const Scene = () => {
@@ -110,6 +110,11 @@ Wirecube2.jsx:192 {
   "_order": "XYZ"
 }
 */
+  // const rotationInRadians = {
+  //   x: rotationInDegrees.x * (Math.PI / 180),
+  //   y: rotationInDegrees.y * (Math.PI / 180),
+  //   z: rotationInDegrees.z * (Math.PI / 180),
+  // };
   return (
     <>
       {!init && <EntryOverlay onStart={handleInit} />}
@@ -142,17 +147,20 @@ Wirecube2.jsx:192 {
             {/* <OrbitControls /> */}
             {/* <pointLight position={[0, 0, 10]} intensity={1.5} /> */}
             <directionalLight {...light} castShadow />
-            {/* <MovingSpot
-              depthBuffer={depthBuffer}
-              color="#0c8cbf"
-              position={[3, 3, 2]}
+            <directionalLight
+              position={[10, 10, 5]}
+              intensity={2}
+              castShadow
+              shadow-mapSize-width={1024}
+              shadow-mapSize-height={1024}
+              shadow-camera-far={50}
+              shadow-camera-left={-20}
+              shadow-camera-right={20}
+              shadow-camera-top={20}
+              shadow-camera-bottom={-20}
             />
-            <MovingSpot
-              depthBuffer={depthBuffer}
-              color="#b00c3f"
-              position={[1, 3, 0]}
-            /> */}
-            <ambientLight intensity={5} />
+
+            <ambientLight intensity={0.5} />
             <WireCube
               settings={outer}
               isOuter
@@ -168,14 +176,8 @@ Wirecube2.jsx:192 {
             >
               <meshStandardMaterial color="red" />
             </Plane> */}
-            <mesh
-              receiveShadow
-              position={[0, -55, 100]}
-              rotation-x={-Math.PI / 2}
-              rotation-y={0}
-              rotation-z={0}
-            >
-              <planeGeometry args={[10000, 10000]} setDrawRange={100} />
+            <mesh receiveShadow position={[0, -2, 0]} rotation-x={-Math.PI / 2}>
+              <planeGeometry args={[1000, 1000]} setDrawRange={100} />
               <meshPhongMaterial color="black" />
             </mesh>
             <Bloom
