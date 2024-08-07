@@ -158,7 +158,7 @@ Wirecube2.jsx:192 {
 
             <ambientLight intensity={0.5} />
             <mesh
-              rotation-y={(45 * Math.PI) / 180}
+              rotation-y={(-45 * Math.PI) / 180}
               rotation-x={(30 * Math.PI) / 180}
             >
               <WireCube
@@ -177,7 +177,7 @@ Wirecube2.jsx:192 {
               <meshStandardMaterial color="red" />
             </Plane> */}
             <mesh
-              position={[0, 0, -50]}
+              position={[0, 0, -20]}
               // rotation-x={(-90 * Math.PI) / 180}
               // rotation-y={(45 * Math.PI) / 180}
               // rotation-x={DEFAULT_CAMERA_ROTATION.x}
