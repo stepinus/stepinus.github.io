@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+
 import {
   OrbitControls,
   Cloud,
@@ -7,7 +8,7 @@ import {
   useDepthBuffer,
 } from "@react-three/drei";
 import { Canvas, useLoader, useThree } from "@react-three/fiber";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, SMAA } from "@react-three/postprocessing";
 import { innerCube, outerCube } from "./params";
 import * as THREE from "three";
 import Fog from "./Fog/Fog";
@@ -124,16 +125,18 @@ Wirecube2.jsx:192 {
           new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
         }
         onCreated={({ camera }) => {
-          camera.position.set(
-            DEFAULT_CAMERA_POSITION.x,
-            DEFAULT_CAMERA_POSITION.y,
-            DEFAULT_CAMERA_POSITION.z
-          );
-          camera.rotation.set(
-            DEFAULT_CAMERA_ROTATION.x,
-            DEFAULT_CAMERA_ROTATION.y,
-            DEFAULT_CAMERA_ROTATION.z
-          );
+          // camera.position.set(
+          //   DEFAULT_CAMERA_POSITION.x,
+          //   DEFAULT_CAMERA_POSITION.y,
+          //   DEFAULT_CAMERA_POSITION.z
+          // );
+          // camera.rotation.set(
+          //   DEFAULT_CAMERA_ROTATION.x,
+          //   DEFAULT_CAMERA_ROTATION.y,
+          //   DEFAULT_CAMERA_ROTATION.z
+          // );
+          camera.position.set(0, 0, 10);
+          camera.rotation.set(0, 0, 0);
         }}
         camera={{
           fov: 75,
@@ -144,31 +147,28 @@ Wirecube2.jsx:192 {
         <Suspense fallback={null}>
           {/* <Perf position="top-left"/> */}
           <EffectComposer disableNormalPass>
-            {/* <OrbitControls /> */}
-            {/* <pointLight position={[0, 0, 10]} intensity={1.5} /> */}
-            <directionalLight {...light} castShadow />
+            <OrbitControls />
             <directionalLight
-              position={[10, 10, 5]}
-              intensity={2}
+              position={[0, -55, 40]}
+              intensity={1}
               castShadow
-              shadow-mapSize-width={1024}
-              shadow-mapSize-height={1024}
-              shadow-camera-far={50}
-              shadow-camera-left={-20}
-              shadow-camera-right={20}
-              shadow-camera-top={20}
-              shadow-camera-bottom={-20}
             />
+            {/* <pointLight position={[0, 5, 20]} intensity={0.5} castShadow />
+            <pointLight position={[0, -5, 20]} intensity={0.5} castShadow /> */}
 
             <ambientLight intensity={0.5} />
-            <WireCube
-              settings={outer}
-              isOuter
-              soundRef={soundRef}
-              isListening={isListening}
-            />
-            {outer.startSound && <Sound url={file} />}
-            <WireCube settings={inner} soundRef={soundRef} />
+            <mesh
+              rotation-y={(45 * Math.PI) / 180}
+              rotation-x={(30 * Math.PI) / 180}
+            >
+              <WireCube
+                settings={outer}
+                isOuter
+                soundRef={soundRef}
+                isListening={isListening}
+              />
+              <WireCube settings={inner} soundRef={soundRef} />
+            </mesh>
             {/* <Plane
               args={[100, 100, 1, 1]}
               rotation-x={Math.PI / -2}
@@ -176,9 +176,15 @@ Wirecube2.jsx:192 {
             >
               <meshStandardMaterial color="red" />
             </Plane> */}
-            <mesh receiveShadow position={[0, -2, 0]} rotation-x={-Math.PI / 2}>
+            <mesh
+              position={[0, 0, -50]}
+              // rotation-x={(-90 * Math.PI) / 180}
+              // rotation-y={(45 * Math.PI) / 180}
+              // rotation-x={DEFAULT_CAMERA_ROTATION.x}
+              // rotateX={(-75 * Math.PI) / 180}
+            >
               <planeGeometry args={[1000, 1000]} setDrawRange={100} />
-              <meshPhongMaterial color="black" />
+              <meshPhongMaterial color="#111111" />
             </mesh>
             <Bloom
               luminanceThreshold={bloom.bloomLuminanceThreshold}
@@ -186,6 +192,7 @@ Wirecube2.jsx:192 {
               levels={10}
               mipmapBlur
             />
+            <SMAA />
           </EffectComposer>
         </Suspense>
       </Canvas>
