@@ -1,7 +1,7 @@
 export const innerCube = {
   scale: { value: 2.1, min: 0.1, max: 5, step: 0.1 },
-  segments: { value: 85, min: 1, max: 500, step: 1 },
-  particleSize: { value: 0.01, min: 0.001, max: 1, step: 0.001 },
+  segments: { value: 164, min: 1, max: 500, step: 1 },
+  particleSize: { value: 0.02, min: 0.001, max: 1, step: 0.001 },
   deformIntensity: { value: 2.0, min: 0, max: 5, step: 0.1 },
   deformFrequency: { value: 1.9, min: 0, max: 5, step: 0.1 },
   deformAmplitude: { value: 0.53, min: 0, max: 1, step: 0.01 },
@@ -17,14 +17,15 @@ export const innerCube = {
   bloomRadius: { value: 0.4, min: 0, max: 1, step: 0.01 },
   bloomThreshold: { value: 0.85, min: 0, max: 1, step: 0.01 },
   brightness: { value: 0.8, min: 0, max: 1, step: 0.01 },
+  rotation: [0, 0, 0],
 };
 export const outerCube = {
   scale: { value: 3.7, min: 0.1, max: 5, step: 0.1 },
-  segments: { value: 51, min: 1, max: 500, step: 1 },
+  segments: { value: 67, min: 1, max: 500, step: 1 },
   particleSize: { value: 0.03, min: 0.001, max: 1, step: 0.001 },
   deformIntensity: { value: 1.8, min: 0, max: 5, step: 0.1 },
   deformFrequency: { value: 1.9, min: 0, max: 5, step: 0.1 },
-  deformAmplitude: { value: 0.53, min: 0, max: 1, step: 0.01 },
+  deformAmplitude: { value: 0.4, min: 0, max: 1, step: 0.01 },
   deformSpeed: { value: 0.1, min: 0, max: 5, step: 0.1 },
   waveSpeed: { value: 0.7, min: 0, max: 5, step: 0.1 },
   isDeformActive: true,
@@ -38,4 +39,5 @@ export const outerCube = {
   bloomThreshold: { value: 0.85, min: 0, max: 1, step: 0.01 },
   brightness: { value: 0.8, min: 0, max: 1, step: 0.01 },
   startSound: false,
+  rotation: [0, 0, 0],
 };

@@ -244,7 +244,7 @@ void main() {
             vGradientFactor = vSizeFactor;
         } else {
             vSizeFactor = 0.0;
-        gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + audioIntensity * 3.0); // Добавляем влияние audioIntensity
+            gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + audioIntensity * 3.0); // Добавляем влияние audioIntensity
             vGradientFactor = 0.0;
         }
     } else {

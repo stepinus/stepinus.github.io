@@ -181,8 +181,12 @@ const CubeComponent = ({
   const { camera } = useThree();
   return (
     <mesh
+    rotateX={-0.3}
+      castShadow
+      receiveShadow
       onClick={(e) => {
         e.stopPropagation();
+
         console.log("position");
         console.log(JSON.stringify(camera.position, null, 2));
         console.log("rotation");
@@ -190,14 +194,14 @@ const CubeComponent = ({
       }}
     >
       <group>
-        <points geometry={geometry} ref={meshRef}>
+        <points geometry={geometry} ref={meshRef} castShadow receiveShadow>
           <cubeMaterial
             ref={materialRef}
             pointTexture={sparkTex}
             baseParticleSize={particleSize}
           />
         </points>
-        <lineSegments geometry={geometry}>
+        <lineSegments geometry={geometry} castShadow>
           <cubeMaterial
             ref={materialRef2}
             pointTexture={sparkTex}
