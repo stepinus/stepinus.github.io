@@ -46,9 +46,10 @@ const Scene = () => {
   const outer = useControls("outerCobe", outerCube);
   const bloom = useControls("bloom", {
     bloomIntensity: { value: 1.7, min: 0, max: 10, step: 0.1 },
-    bloomLuminanceThreshold: { value: 0.18, min: 0, max: 1, step: 0.01 },
+    bloomLuminanceThreshold: { value: 0.22, min: 0, max: 1, step: 0.01 },
     bloomLuminanceSmoothing: { value: 0.02, min: 0, max: 1, step: 0.01 },
-    bloomRadius: { value: 0.6, min: 0, max: 1, step: 0.01 },
+    bloomRadius: { value: 0.79, min: 0, max: 1, step: 0.01 },
+    height: {value: 5, max: 1000, min:0,step:5}
   });
 
   const [init, setInit] = useState(false);
@@ -177,13 +178,14 @@ Wirecube2.jsx:192 {
               rotation-y={(-45 * Math.PI) / 180}
               rotation-x={(30 * Math.PI) / 180}
             >
+              <WireCube settings={inner} soundRef={soundRef} />
               <WireCube
                 settings={outer}
                 isOuter
                 soundRef={soundRef}
                 isListening={isListening}
               />
-              <WireCube settings={inner} soundRef={soundRef} />
+
             </mesh>
             {/* <Plane
               args={[100, 100, 1, 1]}
@@ -205,10 +207,11 @@ Wirecube2.jsx:192 {
             <Bloom
               luminanceThreshold={bloom.bloomLuminanceThreshold}
               intensity={bloom.bloomIntensity}
-              levels={10}
-              // height={100}
-              mipmapBlur
-            />
+              bloomRadius={bloom.bloomRadius}
+              he
+              levels={20}
+              height={2}
+Ï            />
             <SMAA />
           </EffectComposer>
         </Suspense>
