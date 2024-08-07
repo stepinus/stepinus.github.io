@@ -20,7 +20,7 @@ void main() {
     float diff = max(dot(vNormal, lightDir), 0.0);
     float ambient = 0.3;
 
-    if(vIsPoint > 0.5) {
+//    if(vIsPoint > 0.5) {
         vec4 texColor = texture2D(pointTexture, gl_PointCoord);
 
         // Смешиваем цвета на основе деформации, размера и аудио
@@ -39,15 +39,15 @@ void main() {
 
         if(gl_FragColor.a < 0.1)
             discard;
-    } else {
-        // Для линий используем baseColor с влиянием waveColor и аудио
-        vec3 lineColor = mix(baseColor, waveColor, abs(vDisplacement) * 5.0 * (1.0 + audioIntensity));
-        lineColor *= (diff + ambient) * brightness * (1.5 + audioIntensity * 0.5);
-        float distToPoint = length(fract(vUv * 30.0) - 0.5);
-        float lineAlpha = smoothstep(0.0, 0.1, distToPoint);
-        gl_FragColor = vec4(lineColor, lineAlpha);
-
-        // Добавляем свечение, зависящее от аудио
-        gl_FragColor.rgb += lineColor * 0.3 * (1.0 + audioBass * 0.3);
-    }
+//    } else {
+//        // Для линий используем baseColor с влиянием waveColor и аудио
+//        vec3 lineColor = mix(baseColor, waveColor, abs(vDisplacement) * 5.0 * (1.0 + audioIntensity));
+//        lineColor *= (diff + ambient) * brightness * (1.5 + audioIntensity * 0.5);
+//        float distToPoint = length(fract(vUv * 30.0) - 0.5);
+//        float lineAlpha = smoothstep(0.0, 0.1, distToPoint);
+//        gl_FragColor = vec4(lineColor, lineAlpha);
+//
+//        // Добавляем свечение, зависящее от аудио
+//        gl_FragColor.rgb += lineColor * 0.3 * (1.0 + audioBass * 0.3);
+//    }
 }
