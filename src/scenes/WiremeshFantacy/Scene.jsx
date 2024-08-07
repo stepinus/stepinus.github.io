@@ -46,9 +46,9 @@ const Scene = () => {
   const outer = useControls("outerCobe", outerCube);
   const bloom = useControls("bloom", {
     bloomIntensity: { value: 1.7, min: 0, max: 10, step: 0.1 },
-    bloomLuminanceThreshold: { value: 0.22, min: 0, max: 1, step: 0.01 },
-    bloomLuminanceSmoothing: { value: 0.02, min: 0, max: 1, step: 0.01 },
-    bloomRadius: { value: 0.79, min: 0, max: 1, step: 0.01 },
+    bloomLuminanceThreshold: { value: 3, min: 0, max: 5, step: 0.01 },
+    bloomLuminanceSmoothing: { value: 0.02, min: 0, max: 5, step: 0.01 },
+    bloomRadius: { value: 0.79, min: 0, max: 5, step: 0.01 },
     height: {value: 5, max: 1000, min:0,step:5}
   });
 
@@ -208,9 +208,9 @@ Wirecube2.jsx:192 {
               luminanceThreshold={bloom.bloomLuminanceThreshold}
               intensity={bloom.bloomIntensity}
               bloomRadius={bloom.bloomRadius}
-              he
-              levels={20}
-              height={2}
+
+              levels={10}
+              height={50}
 Ï            />
             <SMAA />
           </EffectComposer>

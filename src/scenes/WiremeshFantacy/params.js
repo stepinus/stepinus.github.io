@@ -14,9 +14,9 @@ export const innerCube = {
   isWaveSizeActive: true,
   waveScale: { value: 1.3, min: 0, max: 5, step: 0.1 },
   waveSizeScale: { value: 0.1, min: 0, max: 0.1, step: 0.001 },
-  waveColor: { value: "#ffffff" },
-  baseColor: { value: "#0000ff" },
-  brightness: { value: 0.8600000000000001, min: 0, max: 1, step: 0.01 },
+  waveColor: { value: "#000000" },
+  baseColor: { value: "#001772" },
+  brightness: { value: 10, min: 0, max: 10, step: 0.01 },
 };
 
 export const outerCube = {
@@ -31,8 +31,8 @@ export const outerCube = {
   isDeformActive: true,
   isWaveSizeActive: true,
   waveScale: { value: 2.4, min: 0, max: 5, step: 0.1 },
-  waveSizeScale: { value: 0.001, min: 0, max: 0.1, step: 0.001 },
+  waveSizeScale: { value: 0.05, min: 0, max: 0.1, step: 0.001 },
   waveColor: { value: "#ffffff" },
   baseColor: { value: "#000000" },
-  brightness: { value: 0.79, min: 0, max: 2, step: 0.01 },
+  brightness: { value: 0.79, min: 0, max: 10, step: 0.01 },
 };
