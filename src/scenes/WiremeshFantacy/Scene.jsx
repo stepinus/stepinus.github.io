@@ -38,7 +38,7 @@ const Scene = () => {
   const inner = useControls("innerCube", innerCube);
   const outer = useControls("outerCobe", outerCube);
   const bloom = useControls("bloom", {
-    bloomIntensity: { value: 10, min: 0, max: 10, step: 0.1 },
+    bloomIntensity: { value: 6.8, min: 0, max: 10, step: 0.1 },
     bloomLuminanceThreshold: { value: 0.45, min: 0, max: 1, step: 0.01 },
     bloomLuminanceSmoothing: { value: 0.02, min: 0, max: 1, step: 0.01 },
     bloomRadius: { value: 0.6, min: 0, max: 1, step: 0.01 },
@@ -213,6 +213,15 @@ Wirecube2.jsx:192 {
         <button
           onClick={() => switchAudioType("file")}
           disabled={audioType === "file"}
+        >
+          Use Audio File
+        </button>
+        <button
+          onClick={() => {
+            console.log(inner);
+            console.log(outer);
+            console.log(bloom);
+          }}
         >
           Use Audio File
         </button>

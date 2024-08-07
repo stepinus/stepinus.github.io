@@ -181,9 +181,9 @@ const CubeComponent = ({
   const { camera } = useThree();
   return (
     <mesh
-    rotateX={-0.3}
-      castShadow
-      receiveShadow
+      rotateX={-0.3}
+      // castShadow
+      // receiveShadow
       onClick={(e) => {
         e.stopPropagation();
 
@@ -194,7 +194,7 @@ const CubeComponent = ({
       }}
     >
       <group>
-        <points geometry={geometry} ref={meshRef} castShadow receiveShadow>
+        <points geometry={geometry} ref={meshRef}>
           <cubeMaterial
             ref={materialRef}
             pointTexture={sparkTex}
