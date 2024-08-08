@@ -165,7 +165,7 @@ const Scene = () => {
             /> */}
                         {/* <Noise opacity={0.02} /> */}
                         {/* <Vignette eskil={false} offset={0.1} darkness={1.1} /> */}
-                        <OrbitControls/>
+                        {/*<OrbitControls/>*/}
                         <directionalLight
                             position={[0, -80, 40]}
                             intensity={1}
@@ -176,9 +176,9 @@ const Scene = () => {
             <pointLight position={[0, -5, 20]} intensity={0.5} castShadow /> */}
 
                         {/*<ambientLight intensity={0.5} />*/}
-                      {/*<mesh*/}
-                      {/*      rotation-y={( -25 * Math.PI) / 180}*/}
-                      {/*      rotation-x={(-10 * Math.PI) / 180}>*/}
+                      <mesh
+                            rotation-y={( -45 * Math.PI) / 180}
+                            rotation-x={(30 * Math.PI) / 180}>
                             <WireCube settings={inner} soundRef={soundRef}/>
                             <WireCube
                                 settings={outer}
@@ -186,7 +186,7 @@ const Scene = () => {
                                 soundRef={soundRef}
                                 isListening={isListening}
                             />
-                        {/*</mesh>*/}
+                        </mesh>
                         {/* <Plane
               args={[100, 100, 1, 1]}
               rotation-x={Math.PI / -2}
