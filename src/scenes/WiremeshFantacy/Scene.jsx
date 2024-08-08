@@ -165,7 +165,7 @@ const Scene = () => {
             /> */}
                         {/* <Noise opacity={0.02} /> */}
                         {/* <Vignette eskil={false} offset={0.1} darkness={1.1} /> */}
-                        <OrbitControls/>
+                        {/*<OrbitControls/>*/}
                         <directionalLight
                             position={[0, -80, 40]}
                             intensity={1}
