@@ -93,13 +93,13 @@ const EntryOverlay = ({ onStart }) => {
         zIndex: 1000,
       }}
     >
-      <div>
-        {file ? (
-          <button onClick={sendToServer}>Send to Server</button>
-        ) : (
-          <p>Converting...</p>
-        )}
-      </div>
+      {/*<div>*/}
+      {/*  {file ? (*/}
+      {/*    <button onClick={sendToServer}>Send to Server</button>*/}
+      {/*  ) : (*/}
+      {/*    <p>Converting...</p>*/}
+      {/*  )}*/}
+      {/*</div>*/}
       <div
         style={{
           width: "200px",
