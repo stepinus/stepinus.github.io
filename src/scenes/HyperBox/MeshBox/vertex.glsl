@@ -132,7 +132,7 @@ void main() {
     vec3 newPosition = position;
 
     // Применяем деформацию на основе шума, если она активна
-    if(isDeformActive) {
+    if (isDeformActive) {
         float noiseValue = cnoise(vec3(position.x * frequency + time, position.y * frequency + time, position.z * frequency + time));
         vec3 deformation = vec3(noiseValue) * sin(time * 2.0) * amplitude * intensity;
         newPosition += deformation;
@@ -142,16 +142,40 @@ void main() {
     gl_Position = projectionMatrix * mvPosition;
 
     // Устанавливаем размер точки и вычисляем градиент, если это точка
-    if(isPoint > 0.5) {
-        if(isWaveSizeActive) {
+    if (isPoint > 0.5) {
+        if (isWaveSizeActive) {
             float waveTime = time * waveSpeed;
-            vec3 noisePosition = vec3(position.x * waveScale + waveTime, position.y * waveScale + waveTime, position.z * waveScale + waveTime);
-            float noiseValue = sizeNoise(noisePosition);
-            float pointSize = (noiseValue + 1.0) * 0.5 * waveSizeScale + baseParticleSize;
-            gl_PointSize = pointSize * (300.0 / -mvPosition.z);
 
-            // Вычисляем фактор градиента
-            vGradientFactor = (noiseValue + 1.0) * 0.5;
+            // Уменьшаем масштаб волны для более редкого появления
+            float adjustedWaveScale = waveScale * 0.2;
+
+            vec3 noisePosition = vec3(position.x * adjustedWaveScale + waveTime,
+            position.y * adjustedWaveScale + waveTime,
+            position.z * adjustedWaveScale + waveTime);
+
+            // Основной шум для определения размера волны
+            float noiseValue = sizeNoise(noisePosition);
+
+            // Дополнительный шум для определения области волны
+            float waveAreaNoise = sizeNoise(noisePosition * 0.5 + 1000.0);
+
+            // Используем пороговое значение для определения, где будут волны
+            float waveThreshold = 0.7;
+            float wavePresence = step(waveThreshold, waveAreaNoise);
+
+            // Создаем более резкий переход для волны
+            float waveFactor = smoothstep(0.3, 0.7, noiseValue) * wavePresence;
+
+            // Дополнительно уменьшаем количество волн, используя модульную арифметику
+            float moduloFactor = step(0.8, fract(noiseValue * 2.0));
+            waveFactor *= moduloFactor;
+
+            float finalPointSize = mix(baseParticleSize, baseParticleSize + waveSizeScale, waveFactor);
+
+            gl_PointSize = finalPointSize * (300.0 / -mvPosition.z);
+
+            vSizeFactor = waveFactor;
+            vGradientFactor = waveFactor;
         } else {
             gl_PointSize = size * (300.0 / -mvPosition.z);
             vGradientFactor = 0.0;

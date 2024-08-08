@@ -212,7 +212,7 @@ void main() {
     if(isDeformActive) {
         float noiseValue = cnoise(vec3(position.x * frequency + time, position.y * frequency + time, position.z * frequency + time));
         vec3 deformation = vec3(noiseValue) * sin(time * 2.0) * amplitude * intensity;
-        deformation *= 1.0 + audioIntensity * 5.0; // Умножаем на 5.0 для усиления эффекта
+        deformation *= 1.0 + audioIntensity * 14.0; // Умножаем на 5.0 для усиления эффекта
         newPosition += deformation;
 
         vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
