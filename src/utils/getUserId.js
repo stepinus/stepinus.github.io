@@ -1,5 +1,6 @@
 const getUserId = () => {
     if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.expand();
         const tgWebAppUser = window.Telegram.WebApp.initDataUnsafe.user;
         if (tgWebAppUser && tgWebAppUser.id) {
             return tgWebAppUser.id;

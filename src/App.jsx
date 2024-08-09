@@ -11,6 +11,7 @@ const App = () => {
     const setStatus = useStore((state) => state.setStatus);
     const setUserId = useStore((state) => state.setUserId);
     const status = useStore((state) => state.status);
+    const [audioBlob, setAudioBlob] = useState(null);
 
     const mediaRecorder = useRef(null);
     const audioContext = useRef(null);
@@ -35,16 +36,34 @@ const App = () => {
     const stopRecording = () => {
         if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
             mediaRecorder.current.stop();
-            setStatus(statusMap.isIdle);
+            setStatus(statusMap.isWaitingForResponse);
             setAudioData(null);
         }
     }
+    const sendAudioToAPI = async (blob) => {
+        const formData = new FormData();
+        formData.append('userID', useStore.getState().userId);
+        formData.append('file', blob, 'audio.webm');
+        try {
+            const response = await fetch('https://signal.ai-akedemi-project.ru:5004/recognition-audio/', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            console.log('API response:', data);
+            setStatus(statusMap.isIdle);
+        } catch (error) {
+            console.error('Error sending audio to API:', error);
+            setStatus(statusMap.isIdle);
+        }
+    };
+
     const startRecording = async () => {
         if (!audioContext.current) initAudio();
         try {
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            mediaRecorder.current = new MediaRecorder(stream);
-
+            mediaRecorder.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            mediaRecorder.current.addEventListener('dataavailable', handleDataAvailable);
             source.current = audioContext.current.createMediaStreamSource(stream);
             source.current.connect(analyser.current);
             mediaRecorder.current.start();
@@ -57,7 +76,11 @@ const App = () => {
             console.error('Error accessing microphone:', error);
         }
     };
-
+    const handleDataAvailable = async (event) => {
+        const blob = event.data;
+        setAudioBlob(blob);
+        await sendAudioToAPI(blob);
+    };
     useEffect(() => {
         const id = getUserId();
         setUserId(id);
@@ -65,12 +88,10 @@ const App = () => {
     return (
         <div className={styles.app}>
             <Leva
-                // fill // default = false,  true makes the pane fill the parent dom node it's rendered in
-                flat // default = false,  true removes border radius and shadow
-                // oneLineLabels // default = false, alternative layout for labels, with labels and fields on separate rows
-                hideTitleBar // default = false, hides the GUI header
-                collapsed // default = false, when true the GUI is collpased
-                hidden={false}// default = false, when true the GUI is hidden
+                flat
+                hideTitleBar
+                collapsed
+                hidden={false}
             />Ï
             <Mesh/>
             <div className={styles.controls_container}>
@@ -78,13 +99,19 @@ const App = () => {
                     className={styles.round}
                     onClick={startRecording}
                 >
-                    <box-icon name='circle' type='solid' color='red' size="lg"></box-icon>
+                    <box-icon name='circle' type='solid' color='red' size="md"></box-icon>
                 </button>}
                 {status === statusMap.isRecording && <button
                     className={styles.round}
                     onClick={stopRecording}
                 >
-                    <box-icon name='square' type='solid' color='red' size="lg"></box-icon>
+                    <box-icon name='stop' color='red' size="lg"></box-icon>
+                </button>}
+                {status === statusMap.isWaitingForResponse && <button
+                    className={styles.round}
+                    onClick={stopRecording}
+                >
+                    <box-icon name='dots-horizontal-rounded' color="white"></box-icon>
                 </button>}
             </div>
         </div>
