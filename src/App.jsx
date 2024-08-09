@@ -49,6 +49,7 @@ const App = () => {
                 method: 'POST',
                 body: formData
             });
+            alert('we got response!')
             const data = await response.json();
             console.log('API response:', data);
             setStatus(statusMap.isIdle);
