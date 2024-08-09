@@ -80,3 +80,21 @@ export const outerCube = {
   baseColor: { value: "#000000" },
   brightness: { value: 0.33, min: 0, max: 10, step: 0.01 },
 };
+
+export const innerUniforms = {
+  scale: { value: 5.6},
+  segments: { value: 130},
+  particleSize: { value: 0.04},
+  deformIntensity: { value: 2.0},
+  deformFrequency: { value: 0.9},
+  deformAmplitude: { value: 1.0},
+  deformSpeed: { value: 0.1},
+  waveSpeed: { value: 0.2},
+  isDeformActive: true,
+  isWaveSizeActive: true,
+  waveScale: { value: 1.2},
+  waveSizeScale: { value: 0.07},
+  waveColor: { value: "#ffffff" },
+  baseColor: { value: "#0037ff" },
+  brightness: { value: 1.07},
+}

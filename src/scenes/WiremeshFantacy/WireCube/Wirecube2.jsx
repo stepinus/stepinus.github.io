@@ -75,9 +75,6 @@ extend({CubeMaterial});
 
 const CubeComponent = ({
                            isOuter = false,
-                           bloomLayer,
-                           isListening,
-                           soundRef,
                            settings: {
                                segments = 30,
                                scale: cubeSize = 5,
@@ -124,7 +121,6 @@ const CubeComponent = ({
         const status = useStore.getState().status;
         if (!isOuter && status === statusMap.isRecording) {
             const {intensity,treble,bass} = useStore.getState().audioData;
-            console.log(intensity, treble, bass)
             uniforms.audioIntensity.value = intensity / 2 ;
             uniforms.audioTreble.value =  treble*2;
             uniforms.audioBass.value =  bass*2;
