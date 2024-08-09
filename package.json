@@ -17,6 +17,7 @@
     "@react-three/postprocessing": "^2.16.2",
     "babel-plugin-glsl": "^1.0.0",
     "babel-plugin-macros": "^3.1.0",
+    "boxicons": "^2.1.4",
     "dat.gui": "^0.7.9",
     "glsl-curl-noise": "^0.0.4",
     "glsl-curl-noise2": "^0.0.4",
@@ -29,7 +30,8 @@
     "react-dom": "^18.3.1",
     "three": "^0.167.1",
     "vite-plugin-babel": "^1.2.0",
-    "vite-plugin-glslify": "^2.1.0"
+    "vite-plugin-glslify": "^2.1.0",
+    "zustand": "^4.5.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",

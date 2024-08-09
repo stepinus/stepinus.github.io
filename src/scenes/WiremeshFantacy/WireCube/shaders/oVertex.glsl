@@ -199,7 +199,7 @@ void main() {
     vUv = uv;
     vIsPoint = isPoint;
     vNormal = normalMatrix * normal;
-    vec3 newPosition = position;xq
+    vec3 newPosition = position;
 
     // Оригинальная деформация
     if(isDeformActive) {

@@ -66,15 +66,7 @@ const EntryOverlay = ({ onStart }) => {
       const form = new FormData();
       form.append("file", file);
       setFile(file);
-      // reader.onload = () => {
-      //   const base64 = reader.result.split(",")[1];
-      //   setAudioBase64(base64);
-      // };
-      // const reader = new FileReader();
-
-      // reader.readAsDataURL(blob);
     };
-
     convertToBase64();
   }, []);
   return (
@@ -93,13 +85,6 @@ const EntryOverlay = ({ onStart }) => {
         zIndex: 1000,
       }}
     >
-      {/*<div>*/}
-      {/*  {file ? (*/}
-      {/*    <button onClick={sendToServer}>Send to Server</button>*/}
-      {/*  ) : (*/}
-      {/*    <p>Converting...</p>*/}
-      {/*  )}*/}
-      {/*</div>*/}
       <div
         style={{
           width: "200px",
@@ -113,11 +98,6 @@ const EntryOverlay = ({ onStart }) => {
           backgroundColor: "rgba(0, 0, 0, 0.5)",
         }}
       >
-        {audioUrl && (
-          <audio ref={audioRef} controls src={audioUrl}>
-            Ваш браузер не поддерживает аудио элемент.
-          </audio>
-        )}
         <span style={{ color: "white", fontSize: "24px" }} onClick={onStart}>Начать</span>
       </div>
     </div>

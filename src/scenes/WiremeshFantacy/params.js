@@ -47,20 +47,20 @@
 
 export const innerCube = {
   scale: { value: 5.6, min: 0.1, max: 50, step: 0.1 },
-  segments: { value: 44, min: 1, max: 500, step: 1 },
-  particleSize: { value: 0.89, min: 0.001, max: 10, step: 0.001 },
+  segments: { value: 130, min: 1, max: 500, step: 1 },
+  particleSize: { value: 0.04, min: 0.001, max: 10, step: 0.001 },
   deformIntensity: { value: 2.0, min: 0, max: 5, step: 0.1 },
   deformFrequency: { value: 0.9, min: 0, max: 5, step: 0.1 },
-  deformAmplitude: { value: 0.2, min: 0, max: 1, step: 0.01 },
+  deformAmplitude: { value: 1.0, min: 0, max: 1, step: 0.01 },
   deformSpeed: { value: 0.1, min: 0, max: 5, step: 0.1 },
-  waveSpeed: { value: 0.7, min: 0, max: 5, step: 0.1 },
+  waveSpeed: { value: 0.2, min: 0, max: 5, step: 0.1 },
   isDeformActive: true,
   isWaveSizeActive: true,
   waveScale: { value: 1.2, min: 0, max: 5, step: 0.1 },
-  waveSizeScale: { value: 0.05, min: 0, max: 0.1, step: 0.001 },
-  waveColor: { value: "#2d41b4" },
-  baseColor: { value: "#01155F" },
-  brightness: { value: 7.61, min: 0, max: 10, step: 0.01 },
+  waveSizeScale: { value: 0.07, min: 0, max: 0.1, step: 0.001 },
+  waveColor: { value: "#ffffff" },
+  baseColor: { value: "#0037ff" },
+  brightness: { value: 1.07, min: 0, max: 10, step: 0.01 },
 };
 
 export const outerCube = {
