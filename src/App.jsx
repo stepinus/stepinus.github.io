@@ -47,9 +47,9 @@ const App = () => {
         try {
             const response = await fetch('https://signal.ai-akedemi-project.ru:5004/recognition-audio/', {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
-            alert('we got response!')
+            console.log(response);
             const data = await response.json();
             console.log('API response:', data);
             setStatus(statusMap.isIdle);
@@ -63,7 +63,7 @@ const App = () => {
         if (!audioContext.current) initAudio();
         try {
             const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            mediaRecorder.current = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+            mediaRecorder.current = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' });
             mediaRecorder.current.addEventListener('dataavailable', handleDataAvailable);
             source.current = audioContext.current.createMediaStreamSource(stream);
             source.current.connect(analyser.current);
