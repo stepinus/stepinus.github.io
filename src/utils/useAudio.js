@@ -1,4 +1,3 @@
-
 import * as THREE from "three";
 import BeatsUrl from "../assets/Interview.mp3";
 

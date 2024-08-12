@@ -14,9 +14,6 @@ export default defineConfig({
       // types: { alias: "@shaders", library: "threejs" },
     }),
   ],
-  worker: {
-    format: 'es',
-  },
   resolve: {
     alias: {
       "@shaders": "/src/shaders/",
