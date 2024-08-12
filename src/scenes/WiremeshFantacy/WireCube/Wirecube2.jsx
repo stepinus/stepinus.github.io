@@ -66,6 +66,7 @@ const CubeMaterial = shaderMaterial(
         audioBass: 0,
         audioTreble: 0,
         clickAnimation: 0,
+        isOrbiting: false,
     },
     vertexShader,
     fragmentShader
@@ -103,6 +104,8 @@ const CubeComponent = ({
     const meshRef = useRef();
 
     const updateMaterial = (uniforms) => {
+        const status = useStore.getState().status
+        uniforms.isOrbiting.value = !isOuter && status === statusMap.isWaitingForResponse;
         uniforms.intensity.value = deformIntensity;
         uniforms.time.value = clock.getElapsedTime();
         uniforms.frequency.value = deformFrequency;
@@ -121,6 +124,7 @@ const CubeComponent = ({
         const status = useStore.getState().status;
         if (!isOuter && status === statusMap.isRecording) {
             const {intensity,treble,bass} = useStore.getState().audioData;
+            // console.log(intensity)
             uniforms.audioIntensity.value = intensity / 2 ;
             uniforms.audioTreble.value =  treble*2;
             uniforms.audioBass.value =  bass*2;
@@ -129,6 +133,14 @@ const CubeComponent = ({
             uniforms.audioIntensity.value = 0;
             uniforms.audioTreble.value =  0;
             uniforms.audioBass.value =  0;
+        }
+        if(isOuter && status === statusMap.isSpeaking){
+            const {intensity,treble,bass} = useStore.getState().audioData;
+            // console.log(intensity)
+            uniforms.audioIntensity.value = intensity*5 ;
+            uniforms.intensity.value = 2;
+            uniforms.audioTreble.value =  treble*2;
+            uniforms.audioBass.value =  bass*5;
         }
      }
     useFrame((state, delta) => {

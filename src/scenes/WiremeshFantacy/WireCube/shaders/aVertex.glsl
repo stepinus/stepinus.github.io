@@ -29,6 +29,11 @@ varying float vDeformationFactor;
 varying float vSizeFactor;
 varying float vDisplacement;
 
+uniform bool isOrbiting;
+
+const float ORBIT_RADIUS = 0.5;
+const float ORBIT_SPEED = 1.0;
+
 // Вспомогательные функции для шума Перлина
 vec3 mod289(vec3 x) {
     return x - floor(x * (1.0 / 289.0)) * 289.0;

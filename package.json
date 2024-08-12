@@ -12,6 +12,8 @@
   "dependencies": {
     "@babel/core": "^7.25.2",
     "@babel/preset-react": "^7.24.7",
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "@ffmpeg/util": "^0.12.1",
     "@react-three/drei": "^9.109.2",
     "@react-three/fiber": "^8.16.8",
     "@react-three/postprocessing": "^2.16.2",
