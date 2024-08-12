@@ -48,7 +48,7 @@ const App = () => {
         formData.append('file', blob, 'audio.' + (mimeType === 'audio/mp4' ? 'mp4' : 'webm'));
 
         try {
-            const response = await fetch('http://signal.ai-akedemi-project.ru:5004/recognition-audio/', {
+            const response = await fetch('https://signal.ai-akedemi-project.ru:5004/recognition-audio/', {
                 method: 'POST',
                 body: formData,
             });
