@@ -29,7 +29,7 @@ const App = () => {
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 64;
         gainNode.current = audioContext.current.createGain();
-        gainNode.current.gain.value = 1; // Увеличиваем громкость в 4 раза
+        gainNode.current.gain.value = 3; // Увеличиваем громкость в 4 раза
 
     }
 
