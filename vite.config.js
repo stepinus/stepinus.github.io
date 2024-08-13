@@ -14,7 +14,16 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
   },
-
+  server: {
+    proxy: {
+      '/api/recognition-audio/': {
+        target: 'https://generate.ai-akedemi-project.ru/',
+        changeOrigin: true,
+        secure: false, // Установите в true, если ваш сервер использует HTTPS и имеет действительный сертификат
+        rewrite: (path) => path.replace(/^\/api\/recognition-audio/, '/api/recognition-audio/')
+      }
+    }
+  },
   resolve: {
     alias: {
       "@shaders": "/src/shaders/",

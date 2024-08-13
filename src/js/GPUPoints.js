@@ -19,7 +19,7 @@ class GPUPoints extends Points {
       refs.set([xx, yy], i * 2);
     }
     pg.setAttribute("position", new BufferAttribute(pos, 3));
-    console.log("pos: " + pg.attributes.position.count);
+    // console.log("pos: " + pg.attributes.position.count);
     pg.setAttribute("reference", new BufferAttribute(refs, 2));
 
     let pm = new ShaderMaterial({

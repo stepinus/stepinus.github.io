@@ -25,11 +25,14 @@ const App = () => {
     const setAudioData = useStore((state) => state.setAudioData);
 
     const initAudio = () => {
+        if (audioContext.current) {
+            audioContext.current.close();
+        }
         audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 64;
         gainNode.current = audioContext.current.createGain();
-        gainNode.current.gain.value = 3; // Увеличиваем громкость в 4 раза
+        gainNode.current.gain.value = 1; // Увеличиваем громкость в 4 раза
 
     }
 
@@ -44,31 +47,32 @@ const App = () => {
 
     const stopRecording = () => {
         if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
-            if (microphoneStream) {
-                microphoneStream.getTracks().forEach(track => track.stop());
-                setMicrophoneStream(null);
-            }
             mediaRecorder.current.stop();
-            setStatus(statusMap.isWaitingForResponse);
-            setAudioData(null);
         }
+        if (microphoneStream) {
+            microphoneStream.getTracks().forEach(track => track.stop());
+            setMicrophoneStream(null);
+        }
+        setStatus(statusMap.isWaitingForResponse);
+        setAudioData(null);
     }
-
     const sendAudioToAPI = async (blob, mimeType) => {
         const formData = new FormData();
         formData.append('userID', useStore.getState().userId);
         formData.append('file', blob, 'audio.' + (mimeType === 'audio/mp4' ? 'mp4' : 'webm'));
-        console.log('env', import.meta.env.DEV)
+        console.log('env', import.meta.env.DEV);
+
         try {
-            const response = await fetch((!import.meta.env.DEV ? '/api/recognition-audio/' : 'https://generate.ai-akedemi-project.ru/recognition-audio/'), {
+            const response = await fetch((!import.meta.env.DEV ? '/api/recognition-audio/' : '/api/recognition-audio/'), {
                 method: 'POST',
                 body: formData,
+                // mode: 'no-cors'
             });
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-
+            // console.log(response)
             // Получаем поток из ответа
             const reader = response.body.getReader();
             const chunks = [];
@@ -84,69 +88,46 @@ const App = () => {
 
             await read();
 
-            // Создаем Blob из полученных данных
-            const audioBlob = new Blob(chunks, { type: 'audio/mpeg' }); // Измените MIME-тип в зависимости от формата аудио
-            const audioUrl = URL.createObjectURL(audioBlob);
+            const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
+            const arrayBuffer = await audioBlob.arrayBuffer();
 
-            // Создаем и воспроизводим аудио
-            const audio = new Audio(audioUrl);
-            audio.controls = true; // Добавляем элементы управления аудио
-            document.body.appendChild(audio); // Добавляем элемент на страницу
+            initAudio(); // Пересоздаем аудиоконтекст перед каждым воспроизведением
 
-            // Начинаем записывать данные при воспроизведении
-            audio.addEventListener('play', () => {
-                setStatus(statusMap.isSpeaking);
-                updateAudioData(); // Обновляем данные аудио
-            });
+            if (!audioContext.current) initAudio();
 
-            // Останавливаем запись данных после окончания воспроизведения
-            audio.addEventListener('ended', () => {
+            // Декодируем аудиоданные
+            const audioBuffer = await audioContext.current.decodeAudioData(arrayBuffer);
+
+            // Создаем источник аудио
+            const source = audioContext.current.createBufferSource();
+            source.buffer = audioBuffer;
+
+            // Подключаем источник к gainNode и analyser
+            source.connect(gainNode.current);
+            gainNode.current.connect(analyser.current);
+            analyser.current.connect(audioContext.current.destination);
+
+            setStatus(statusMap.isSpeaking);
+            updateAudioData();
+
+            // Обработчик окончания воспроизведения
+            source.onended = () => {
                 setStatus(statusMap.isIdle);
                 setAudioData(null);
-            });
+                audioContext.current.close(); // Закрываем аудиоконтекст после воспроизведения
+                audioContext.current = null;
+            };
 
             // Воспроизводим аудио
-            await audio.play();
+            source.start();
 
         } catch (error) {
             console.error('Error sending audio to API:', error);
             setStatus(statusMap.isIdle);
         }
     };
-    // const sendAudioToAPI = async (blob, mimeType) => {
-    //     const audioUrl = speech; // Путь к вашему локальному файлу
-    //     stopRecording()
-    //     try {
-    //         if (!audioContext.current) initAudio();
-    //
-    //         const response = await fetch(audioUrl);
-    //         const arrayBuffer = await response.arrayBuffer();
-    //         const audioBuffer = await audioContext.current.decodeAudioData(arrayBuffer);
-    //
-    //         const source = audioContext.current.createBufferSource();
-    //         source.buffer = audioBuffer;
-    //
-    //         source.connect(gainNode.current);
-    //         gainNode.current.connect(analyser.current);
-    //         analyser.current.connect(audioContext.current.destination);
-    //
-    //         setStatus(statusMap.isSpeaking);
-    //         updateAudioData();
-    //
-    //         source.onended = () => {
-    //             setStatus(statusMap.isIdle);
-    //             setAudioData(null);
-    //         };
-    //
-    //         source.start();
-    //
-    //     } catch (error) {
-    //         console.error('Error playing debug audio:', error);
-    //         setStatus(statusMap.isIdle);
-    //     }
-    // };
     const startRecording = async () => {
-        if (!audioContext.current) initAudio();
+        initAudio(); //
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             setMicrophoneStream(stream);
@@ -180,6 +161,12 @@ const App = () => {
     useEffect(() => {
         const id = getUserId();
         setUserId(id);
+        return () => {
+            // Очистка при размонтировании компонента
+            if (audioContext.current) {
+                audioContext.current.close();
+            }
+        };
     }, [])
 
     return (
