@@ -60,7 +60,7 @@ const App = () => {
         formData.append('file', blob, 'audio.' + (mimeType === 'audio/mp4' ? 'mp4' : 'webm'));
 
         try {
-            const response = await fetch('https://generate.ai-akedemi-project.ru/recognition-audio/  ', {
+            const response = await fetch((import.meta.env.PROD ? '/api/recognition-audio/' : 'https://generate.ai-akedemi-project.ru/recognition-audio/'), {
                 method: 'POST',
                 body: formData,
             });
