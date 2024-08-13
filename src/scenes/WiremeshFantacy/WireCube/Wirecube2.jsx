@@ -126,24 +126,17 @@ const CubeComponent = ({
             const {intensity,treble,bass} = useStore.getState().audioData;
             // console.log(intensity)
             uniforms.audioIntensity.value = intensity / 1.5;
-            uniforms.audioTreble.value =  treble;
-            uniforms.audioBass.value =  bass;
             console.log(intensity)
-            console.log(treble)
         }
         if (status !== statusMap.isRecording && status !== statusMap.isSpeaking) {
             uniforms.audioIntensity.value = 0;
-            uniforms.audioTreble.value =  0;
-            uniforms.audioBass.value =  0;
         }
         if(isOuter && status === statusMap.isSpeaking){
             const {intensity,treble,bass} = useStore.getState().audioData;
             // console.log(intensity)
             console.log(intensity)
             console.log(treble)
-            uniforms.audioIntensity.value = intensity * 6 ;
-            uniforms.audioTreble.value =  treble * 5;
-            uniforms.audioBass.value =  bass * 5;
+            uniforms.audioIntensity.value = intensity
         }
      }
     useFrame((state, delta) => {

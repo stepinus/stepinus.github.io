@@ -6,23 +6,31 @@ import 'boxicons'
 import getUserId from "./utils/getUserId.js";
 import * as THREE from "three";
 import { Leva } from "leva";
+import speech from './result2.mp3'
 
 const App = () => {
     const setStatus = useStore((state) => state.setStatus);
     const setUserId = useStore((state) => state.setUserId);
     const status = useStore((state) => state.status);
+    const [microphoneStream, setMicrophoneStream] = useState(null);
+
     const [audioBlob, setAudioBlob] = useState(null);
 
     const mediaRecorder = useRef(null);
     const audioContext = useRef(null);
     const analyser = useRef(null);
     const source = useRef(null);
+    const gainNode = useRef(null);
+
     const setAudioData = useStore((state) => state.setAudioData);
 
     const initAudio = () => {
         audioContext.current = new (window.AudioContext || window.webkitAudioContext)();
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 64;
+        gainNode.current = audioContext.current.createGain();
+        gainNode.current.gain.value = 1; // Увеличиваем громкость в 4 раза
+
     }
 
     const updateAudioData = () => {
@@ -36,6 +44,10 @@ const App = () => {
 
     const stopRecording = () => {
         if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
+            if (microphoneStream) {
+                microphoneStream.getTracks().forEach(track => track.stop());
+                setMicrophoneStream(null);
+            }
             mediaRecorder.current.stop();
             setStatus(statusMap.isWaitingForResponse);
             setAudioData(null);
@@ -48,7 +60,7 @@ const App = () => {
         formData.append('file', blob, 'audio.' + (mimeType === 'audio/mp4' ? 'mp4' : 'webm'));
 
         try {
-            const response = await fetch('https://signal.ai-akedemi-project.ru:5004/recognition-audio/', {
+            const response = await fetch('https://generate.ai-akedemi-project.ru/recognition-audio/  ', {
                 method: 'POST',
                 body: formData,
             });
@@ -101,12 +113,43 @@ const App = () => {
             setStatus(statusMap.isIdle);
         }
     };
-
+    // const sendAudioToAPI = async (blob, mimeType) => {
+    //     const audioUrl = speech; // Путь к вашему локальному файлу
+    //     stopRecording()
+    //     try {
+    //         if (!audioContext.current) initAudio();
+    //
+    //         const response = await fetch(audioUrl);
+    //         const arrayBuffer = await response.arrayBuffer();
+    //         const audioBuffer = await audioContext.current.decodeAudioData(arrayBuffer);
+    //
+    //         const source = audioContext.current.createBufferSource();
+    //         source.buffer = audioBuffer;
+    //
+    //         source.connect(gainNode.current);
+    //         gainNode.current.connect(analyser.current);
+    //         analyser.current.connect(audioContext.current.destination);
+    //
+    //         setStatus(statusMap.isSpeaking);
+    //         updateAudioData();
+    //
+    //         source.onended = () => {
+    //             setStatus(statusMap.isIdle);
+    //             setAudioData(null);
+    //         };
+    //
+    //         source.start();
+    //
+    //     } catch (error) {
+    //         console.error('Error playing debug audio:', error);
+    //         setStatus(statusMap.isIdle);
+    //     }
+    // };
     const startRecording = async () => {
         if (!audioContext.current) initAudio();
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-
+            setMicrophoneStream(stream);
             // Проверяем поддержку MIME-типа
             let mimeType = 'audio/webm;codecs=opus';
             if (!MediaRecorder.isTypeSupported(mimeType)) {

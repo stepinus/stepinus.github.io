@@ -227,7 +227,7 @@ void main() {
     if(isDeformActive) {
         float noiseValue = cnoise(vec3(position.x * frequency + time, position.y * frequency + time, position.z * frequency + time));
         vec3 deformation = vec3(noiseValue) * sin(time * 2.0) * amplitude * intensity;
-        deformation *= 1.0 + audioIntensity * 14.0; // Умножаем на 5.0 для усиления эффекта
+        deformation *= 1.0 + audioIntensity * 14.0; // Умножаем на 14.0 для усиления эффекта
         newPosition += deformation;
 
         vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
@@ -246,7 +246,7 @@ void main() {
             // Здесь происходит изменение размера точек
             float waveTime = time * waveSpeed;
             vec3 noisePosition = vec3(position.x * waveScale + waveTime, position.y * waveScale + waveTime, position.z * waveScale + waveTime);
-            float noiseValue = cnoise(noisePosition); // Используем cnoise вместо sizeNoise
+            float noiseValue = cnoise(noisePosition);
 
             // Вычисляем размер точки на основе шума
             float pointSize = baseParticleSize + waveSizeScale * (noiseValue * 0.5 + 0.5);

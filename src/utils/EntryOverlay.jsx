@@ -61,7 +61,7 @@ const EntryOverlay = ({ onStart }) => {
     const convertToBase64 = async () => {
       const response = await fetch(interview);
       const blob = await response.blob();
-      const file = new File([blob], "audio.mp3", { type: "audio/mpeg" });
+      const file = new File([blob], "result2.mp3", { type: "audio/mpeg" });
 
       const form = new FormData();
       form.append("file", file);
