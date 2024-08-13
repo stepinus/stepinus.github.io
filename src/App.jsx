@@ -1,20 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Mesh from "./scenes/WiremeshFantacy";
 import styles from "./styles.module.css";
-import { useStore, statusMap } from "./store.js"; // Импортируем стили
+import { useStore, statusMap } from "./store.js";
 import 'boxicons'
 import getUserId from "./utils/getUserId.js";
-import * as THREE from "three";
 import { Leva } from "leva";
-import speech from './result2.mp3'
+import MicRecorder from '@jmd01/mic-recorder-to-mp3';
+
+const USE_LIBRARY_FALLBACK = true; // Константа для переключения между библиотекой и mp4
 
 const App = () => {
+    const [recorder] = useState(new MicRecorder({ bitRate: 128 }));
     const setStatus = useStore((state) => state.setStatus);
     const setUserId = useStore((state) => state.setUserId);
     const status = useStore((state) => state.status);
     const [microphoneStream, setMicrophoneStream] = useState(null);
-
     const [audioBlob, setAudioBlob] = useState(null);
+    const [useAlternativeMethod, setUseAlternativeMethod] = useState(false);
 
     const mediaRecorder = useRef(null);
     const audioContext = useRef(null);
@@ -32,8 +34,7 @@ const App = () => {
         analyser.current = audioContext.current.createAnalyser();
         analyser.current.fftSize = 64;
         gainNode.current = audioContext.current.createGain();
-        gainNode.current.gain.value = 1; // Увеличиваем громкость в 4 раза
-
+        gainNode.current.gain.value = 1;
     }
 
     const updateAudioData = () => {
@@ -46,38 +47,45 @@ const App = () => {
     };
 
     const stopRecording = () => {
-        if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
-            mediaRecorder.current.stop();
-        }
-        if (microphoneStream) {
-            microphoneStream.getTracks().forEach(track => track.stop());
-            setMicrophoneStream(null);
+        if (!useAlternativeMethod) {
+            if (mediaRecorder.current && mediaRecorder.current.state === 'recording') {
+                mediaRecorder.current.stop();
+            }
+            if (microphoneStream) {
+                microphoneStream.getTracks().forEach(track => track.stop());
+                setMicrophoneStream(null);
+            }
+        } else if (USE_LIBRARY_FALLBACK) {
+            recorder.stop().getMp3().then(([buffer, blob]) => {
+                setAudioBlob(blob);
+                sendAudioToAPI(blob, 'audio/mpeg');
+            }).catch((e) => {
+                console.error("Error stopping MicRecorder:", e);
+                setStatus(statusMap.isIdle);
+            });
         }
         setStatus(statusMap.isWaitingForResponse);
         setAudioData(null);
     }
+
     const sendAudioToAPI = async (blob, mimeType) => {
         const formData = new FormData();
         formData.append('userID', useStore.getState().userId);
-        formData.append('file', blob, 'audio.' + (mimeType === 'audio/mp4' ? 'mp4' : 'webm'));
-        console.log('env', import.meta.env.DEV);
+        formData.append('file', blob, `audio.${mimeType.split('/')[1]}`);
 
         try {
             const response = await fetch((!import.meta.env.DEV ? '/api/recognition-audio/' : '/api/recognition-audio/'), {
                 method: 'POST',
                 body: formData,
-                // mode: 'no-cors'
             });
 
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-            // console.log(response)
-            // Получаем поток из ответа
+
             const reader = response.body.getReader();
             const chunks = [];
 
-            // Читаем поток
             async function read() {
                 while (true) {
                     const { done, value } = await reader.read();
@@ -91,18 +99,15 @@ const App = () => {
             const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
             const arrayBuffer = await audioBlob.arrayBuffer();
 
-            initAudio(); // Пересоздаем аудиоконтекст перед каждым воспроизведением
+            initAudio();
 
             if (!audioContext.current) initAudio();
 
-            // Декодируем аудиоданные
             const audioBuffer = await audioContext.current.decodeAudioData(arrayBuffer);
 
-            // Создаем источник аудио
             const source = audioContext.current.createBufferSource();
             source.buffer = audioBuffer;
 
-            // Подключаем источник к gainNode и analyser
             source.connect(gainNode.current);
             gainNode.current.connect(analyser.current);
             analyser.current.connect(audioContext.current.destination);
@@ -110,15 +115,13 @@ const App = () => {
             setStatus(statusMap.isSpeaking);
             updateAudioData();
 
-            // Обработчик окончания воспроизведения
             source.onended = () => {
                 setStatus(statusMap.isIdle);
                 setAudioData(null);
-                audioContext.current.close(); // Закрываем аудиоконтекст после воспроизведения
+                audioContext.current.close();
                 audioContext.current = null;
             };
 
-            // Воспроизводим аудио
             source.start();
 
         } catch (error) {
@@ -126,22 +129,35 @@ const App = () => {
             setStatus(statusMap.isIdle);
         }
     };
+
     const startRecording = async () => {
-        initAudio(); //
+        initAudio();
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             setMicrophoneStream(stream);
-            // Проверяем поддержку MIME-типа
-            let mimeType = 'audio/webm;codecs=opus';
-            if (!MediaRecorder.isTypeSupported(mimeType)) {
-                mimeType = 'audio/mp4';
+
+            const isWebmSupported = MediaRecorder.isTypeSupported('audio/webm');
+
+            if (!isWebmSupported) {
+                setUseAlternativeMethod(true);
+                if (USE_LIBRARY_FALLBACK) {
+                    await recorder.start();
+                } else {
+                    const mimeType = 'audio/mp4';
+                    mediaRecorder.current = new MediaRecorder(stream, { mimeType });
+                    mediaRecorder.current.addEventListener('dataavailable', (event) => handleDataAvailable(event, mimeType));
+                    mediaRecorder.current.start();
+                }
+            } else {
+                const mimeType = 'audio/webm';
+                mediaRecorder.current = new MediaRecorder(stream, { mimeType });
+                mediaRecorder.current.addEventListener('dataavailable', (event) => handleDataAvailable(event, mimeType));
+                mediaRecorder.current.start();
             }
 
-            mediaRecorder.current = new MediaRecorder(stream, { mimeType });
-            mediaRecorder.current.addEventListener('dataavailable', (event) => handleDataAvailable(event, mimeType));
             source.current = audioContext.current.createMediaStreamSource(stream);
             source.current.connect(analyser.current);
-            mediaRecorder.current.start();
+
             setStatus(statusMap.isRecording);
             updateAudioData();
             setTimeout(() => {
@@ -162,13 +178,11 @@ const App = () => {
         const id = getUserId();
         setUserId(id);
         return () => {
-            // Очистка при размонтировании компонента
             if (audioContext.current) {
                 audioContext.current.close();
             }
         };
     }, [])
-
     return (
         <div className={styles.app}>
             <Leva
@@ -179,24 +193,21 @@ const App = () => {
             />
             <Mesh/>
             <div className={styles.controls_container}>
-                {status === statusMap.isIdle && <button
-                    className={styles.round}
-                    onClick={startRecording}
-                >
-                    <box-icon name='circle' type='solid' color='red' size="md"></box-icon>
-                </button>}
-                {status === statusMap.isRecording && <button
-                    className={styles.round}
-                    onClick={stopRecording}
-                >
-                    <box-icon name='stop' color='red' size="lg"></box-icon>
-                </button>}
-                {status === statusMap.isWaitingForResponse && <button
-                    className={styles.round}
-                    onClick={stopRecording}
-                >
-                    <box-icon name='dots-horizontal-rounded' color="white"></box-icon>
-                </button>}
+                {status === statusMap.isIdle && (
+                    <button className={styles.round} onClick={startRecording}>
+                        <box-icon name='circle' type='solid' color='red' size="md"></box-icon>
+                    </button>
+                )}
+                {status === statusMap.isRecording && (
+                    <button className={styles.round} onClick={stopRecording}>
+                        <box-icon name='stop' color='red' size="lg"></box-icon>
+                    </button>
+                )}
+                {status === statusMap.isWaitingForResponse && (
+                    <button className={styles.round} onClick={stopRecording}>
+                        <box-icon name='dots-horizontal-rounded' color="white"></box-icon>
+                    </button>
+                )}
             </div>
         </div>
     );

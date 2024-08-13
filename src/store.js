@@ -14,7 +14,7 @@ export const useStore = create((set, get) => ({
     status: statusMap.isIdle,
     userId:null,
     audioContext: null,
-    audioData:null,
+    audioData: {intensity:0},
     setStatus: (status) => set((state) => ({ status })),
     setUserId: (userId) => set((state) => ({ userId })),
     setAudioData: (data) => set({ audioData: processAudioData(data) }),
