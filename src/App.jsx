@@ -17,12 +17,13 @@ const App = () => {
     const [microphoneStream, setMicrophoneStream] = useState(null);
     const [audioBlob, setAudioBlob] = useState(null);
     const [useAlternativeMethod, setUseAlternativeMethod] = useState(false);
-
+    const [isSpacePressed, setIsSpacePressed] = useState(false);
     const mediaRecorder = useRef(null);
     const audioContext = useRef(null);
     const analyser = useRef(null);
     const source = useRef(null);
     const gainNode = useRef(null);
+
 
     const setAudioData = useStore((state) => state.setAudioData);
 
@@ -129,6 +130,42 @@ const App = () => {
             setStatus(statusMap.isIdle);
         }
     };
+    const handleKeyDown = (event) => {
+        if (event.code === 'KeyS' && status === statusMap.isIdle) {
+            startRecording();
+        } else if (event.code === 'KeyS' && status === statusMap.isRecording) {
+            stopRecording();
+        } else if (event.code === 'Space' && status === statusMap.isIdle && !isSpacePressed) {
+            setIsSpacePressed(true);
+            startRecording();
+        } else if (event.code ==='KeyR'){
+            setStatus(statusMap.isIdle);
+        }
+    };
+    const handleKeyUp = (event) => {
+        if (event.code === 'Space' && status === statusMap.isRecording) {
+            setIsSpacePressed(false);
+            stopRecording();
+        }
+    };
+    useEffect(() => {
+        const id = getUserId();
+        setUserId(id);
+        return () => {
+            if (audioContext.current) {
+                audioContext.current.close();
+            }
+        };
+    }, [])
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, [status, isSpacePressed]);
 
     const startRecording = async () => {
         initAudio();
@@ -174,15 +211,7 @@ const App = () => {
         await sendAudioToAPI(blob, mimeType);
     };
 
-    useEffect(() => {
-        const id = getUserId();
-        setUserId(id);
-        return () => {
-            if (audioContext.current) {
-                audioContext.current.close();
-            }
-        };
-    }, [])
+
     return (
         <div className={styles.app}>
             <Leva
