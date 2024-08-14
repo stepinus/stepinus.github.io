@@ -130,13 +130,19 @@ const CubeComponent = ({
     const meshRef = useRef();
 
     const updateMaterial = (uniforms) => {
+
         const status = useStore.getState().status
         uniforms.isOrbiting.value = !isOuter && status === statusMap.isWaitingForResponse;
-        uniforms.intensity.value = deformIntensity;
         uniforms.time.value = clock.getElapsedTime();
         uniforms.frequency.value = deformFrequency;
         uniforms.amplitude.value = deformAmplitude;
-        uniforms.isDeformActive.value = isDeformActive;
+        if(!isOuter && status === statusMap.isIdle && useStore.getState().autoMode) {
+            uniforms.intensity.value = 0;
+        }else{
+            uniforms.intensity.value = deformIntensity;
+
+        }
+        uniforms.isDeformActive.value = true;
         uniforms.isWaveSizeActive.value = isWaveSizeActive;
         uniforms.waveScale.value = waveScale;
         uniforms.waveSpeed.value = waveSpeed;

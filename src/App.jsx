@@ -6,13 +6,21 @@ import 'boxicons'
 import getUserId from "./utils/getUserId.js";
 import { Leva } from "leva";
 import MicRecorder from '@jmd01/mic-recorder-to-mp3';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
+const DELAY_STEP = 100; // Шаг изменения задержки в миллисекундах
 const USE_LIBRARY_FALLBACK = true; // Константа для переключения между библиотекой и mp4
+const ABOVE_THRESHOLD_DELAY = 300; // 1 секунда
+const BELOW_THRESHOLD_DELAY = 2000; // 2 секунды
+const THRESHOLD_STEP = 5; // Шаг изменения порога
 
 const App = () => {
     const [recorder] = useState(new MicRecorder({ bitRate: 128 }));
     const setStatus = useStore((state) => state.setStatus);
     const setUserId = useStore((state) => state.setUserId);
+    const autoMode = useStore((state)=>state.autoMode);
+    const setAutoMode = useStore((state)=>state.setAutoMode);
     const status = useStore((state) => state.status);
     const [microphoneStream, setMicrophoneStream] = useState(null);
     const [audioBlob, setAudioBlob] = useState(null);
@@ -23,9 +31,81 @@ const App = () => {
     const analyser = useRef(null);
     const source = useRef(null);
     const gainNode = useRef(null);
-
-
+    const autoModeStreamRef = useRef(null);
+    const intensityThreshold = useStore((state) => state.intensityThreshold);
+    const [isAboveThreshold, setIsAboveThreshold] = useState(false);
+    const aboveThresholdTimer = useRef(null);
+    const belowThresholdTimer = useRef(null);
+    const [hasTriggeredAboveThreshold, setHasTriggeredAboveThreshold] = useState(false);
+    const [hasLoggedAboveThreshold, setHasLoggedAboveThreshold] = useState(false);
+    const aboveThresholdDelay = useStore((state) => state.aboveThresholdDelay);
+    const belowThresholdDelay = useStore((state) => state.belowThresholdDelay);
+    const setAboveThresholdDelay = useStore((state) => state.setAboveThresholdDelay);
+    const setBelowThresholdDelay = useStore((state) => state.setBelowThresholdDelay);
     const setAudioData = useStore((state) => state.setAudioData);
+
+    const checkIntensityThreshold = () => {
+        const currentStatus = useStore.getState().status;
+        const currentIntensity = useStore.getState().audioData?.rawIntensity || 0;
+        const intensityThreshold = useStore.getState().intensityThreshold;
+        const hasTriggeredAboveThreshold = useStore.getState().hasTriggeredAboveThreshold;
+        const hasTriggeredBelowThreshold = useStore.getState().hasTriggeredBelowThreshold;
+        const setHasTriggeredAboveThreshold = useStore.getState().setHasTriggeredAboveThreshold;
+        const setHasTriggeredBelowThreshold = useStore.getState().setHasTriggeredBelowThreshold;
+
+        if (currentStatus === statusMap.isIdle) {
+            if (currentIntensity > intensityThreshold) {
+                if (!hasTriggeredAboveThreshold) {
+                    if (!aboveThresholdTimer.current) {
+                        aboveThresholdTimer.current = setTimeout(() => {
+                            setHasTriggeredAboveThreshold(true);
+                            startRecording();
+                        }, ABOVE_THRESHOLD_DELAY);
+                    }
+                }
+            } else {
+                if (aboveThresholdTimer.current) {
+                    clearTimeout(aboveThresholdTimer.current);
+                    aboveThresholdTimer.current = null;
+                }
+            }
+        } else if (currentStatus === statusMap.isRecording) {
+            if (currentIntensity <= intensityThreshold) {
+                if (!hasTriggeredBelowThreshold) {
+                    if (!belowThresholdTimer.current) {
+                        belowThresholdTimer.current = setTimeout(() => {
+                            setHasTriggeredBelowThreshold(true);
+                            stopRecording();
+                        }, BELOW_THRESHOLD_DELAY);
+                    }
+                }
+            } else {
+                if (belowThresholdTimer.current) {
+                    clearTimeout(belowThresholdTimer.current);
+                    belowThresholdTimer.current = null;
+                }
+            }
+        } else {
+            if (aboveThresholdTimer.current) {
+                clearTimeout(aboveThresholdTimer.current);
+                aboveThresholdTimer.current = null;
+            }
+            if (belowThresholdTimer.current) {
+                clearTimeout(belowThresholdTimer.current);
+                belowThresholdTimer.current = null;
+            }
+            setHasTriggeredAboveThreshold(false);
+            setHasTriggeredBelowThreshold(false);
+        }
+
+        if (useStore.getState().autoMode) {
+            requestAnimationFrame(checkIntensityThreshold);
+        }
+    };
+
+
+
+
 
     const initAudio = () => {
         if (audioContext.current) {
@@ -36,16 +116,21 @@ const App = () => {
         analyser.current.fftSize = 64;
         gainNode.current = audioContext.current.createGain();
         gainNode.current.gain.value = 1;
-    }
+    };
 
     const updateAudioData = () => {
+        if (!analyser.current) return;
+
         const dataArray = new Uint8Array(analyser.current.frequencyBinCount);
         analyser.current.getByteFrequencyData(dataArray);
         setAudioData(dataArray);
-        if (useStore.getState().status === statusMap.isRecording || useStore.getState().status === statusMap.isSpeaking) {
+        if (useStore.getState().autoMode || useStore.getState().status === statusMap.isRecording || useStore.getState().status === statusMap.isSpeaking) {
             requestAnimationFrame(updateAudioData);
+        } else {
+            setAudioData(null);
         }
     };
+
 
     const stopRecording = () => {
         if (!useAlternativeMethod) {
@@ -121,6 +206,9 @@ const App = () => {
                 setAudioData(null);
                 audioContext.current.close();
                 audioContext.current = null;
+                if (autoMode) {
+                    checkIntensityThreshold();
+                }
             };
 
             source.start();
@@ -138,10 +226,33 @@ const App = () => {
         } else if (event.code === 'Space' && status === statusMap.isIdle && !isSpacePressed) {
             setIsSpacePressed(true);
             startRecording();
-        } else if (event.code ==='KeyR'){
+        } else if (event.code === 'KeyR') {
             setStatus(statusMap.isIdle);
+        } else if (event.code === 'KeyA') {
+            const status = useStore.getState().autoMode
+            setAutoMode(!status);
+            toast(`авторежим ${useStore.getState().autoMode}`)
+        } else if (event.code === 'Equal' || event.code === 'NumpadAdd') {
+            useStore.getState().setIntensityThreshold(useStore.getState().intensityThreshold + THRESHOLD_STEP);
+            toast(`порог увеличен до ${useStore.getState().intensityThreshold}`);
+        } else if (event.code === 'Minus' || event.code === 'NumpadSubtract') {
+            useStore.getState().setIntensityThreshold(Math.max(0, useStore.getState().intensityThreshold - THRESHOLD_STEP));
+            toast(`порог уменьшен до ${useStore.getState().intensityThreshold}`);
+        } else if (event.code === 'BracketRight') {
+            setAboveThresholdDelay(aboveThresholdDelay + DELAY_STEP);
+            toast(`Задержка выше порога увеличена до ${aboveThresholdDelay + DELAY_STEP}мс`);
+        } else if (event.code === 'BracketLeft') {
+            setAboveThresholdDelay(Math.max(0, aboveThresholdDelay - DELAY_STEP));
+            toast(`Задержка выше порога уменьшена до ${Math.max(0, aboveThresholdDelay - DELAY_STEP)}мс`);
+        } else if (event.code === 'Quote') {
+            setBelowThresholdDelay(belowThresholdDelay + DELAY_STEP);
+            toast(`Задержка ниже порога увеличена до ${belowThresholdDelay + DELAY_STEP}мс`);
+        } else if (event.code === 'Semicolon') {
+            setBelowThresholdDelay(Math.max(0, belowThresholdDelay - DELAY_STEP));
+            toast(`Задержка ниже порога уменьшена до ${Math.max(0, belowThresholdDelay - DELAY_STEP)}мс`);
         }
     };
+
     const handleKeyUp = (event) => {
         if (event.code === 'Space' && status === statusMap.isRecording) {
             setIsSpacePressed(false);
@@ -212,13 +323,90 @@ const App = () => {
     };
 
 
+    const startAutoModeListening = async () => {
+        if (!audioContext.current) initAudio();
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            autoModeStreamRef.current = stream;
+
+            source.current = audioContext.current.createMediaStreamSource(stream);
+            source.current.connect(analyser.current);
+
+            updateAudioData();
+        } catch (error) {
+            console.error('Error accessing microphone for auto mode:', error);
+        }
+    };
+
+    const stopAutoModeListening = () => {
+        if (autoModeStreamRef.current) {
+            autoModeStreamRef.current.getTracks().forEach(track => track.stop());
+            autoModeStreamRef.current = null;
+        }
+        if (source.current) {
+            source.current.disconnect();
+            source.current = null;
+        }
+        if (analyser.current) {
+            analyser.current.disconnect();
+        }
+        if (audioContext.current) {
+            audioContext.current.close();
+            audioContext.current = null;
+        }
+        setAudioData(null);
+    };
+    useEffect(() => {
+        if (autoMode) {
+            checkIntensityThreshold();
+        } else {
+            setIsAboveThreshold(false);
+            setHasTriggeredAboveThreshold(false);
+            if (aboveThresholdTimer.current) {
+                clearTimeout(aboveThresholdTimer.current);
+                aboveThresholdTimer.current = null;
+            }
+            if (belowThresholdTimer.current) {
+                clearTimeout(belowThresholdTimer.current);
+                belowThresholdTimer.current = null;
+            }
+        }
+
+        return () => {
+            if (aboveThresholdTimer.current) {
+                clearTimeout(aboveThresholdTimer.current);
+            }
+            if (belowThresholdTimer.current) {
+                clearTimeout(belowThresholdTimer.current);
+            }
+        };
+    }, [autoMode, intensityThreshold]);
+
+    useEffect(() => {
+        if (status === statusMap.isIdle && autoMode) {
+            startAutoModeListening();
+        }
+    }, [status, autoMode]);
+    useEffect(() => {
+        if (autoMode) {
+            startAutoModeListening();
+        } else {
+            stopAutoModeListening();
+            setStatus(statusMap.isIdle);
+        }
+
+        return () => {
+            stopAutoModeListening();
+        };
+    }, [autoMode]);
     return (
         <div className={styles.app}>
             <Leva
                 flat
                 hideTitleBar
                 collapsed
-                hidden={true}
+                hidden={false}
             />
             <Mesh/>
             <div className={styles.controls_container}>
@@ -238,6 +426,8 @@ const App = () => {
                     </button>
                 )}
             </div>
+            <ToastContainer autoClose={1000} theme={'dark'}
+                            hideProgressBar={true}/>
         </div>
     );
 };

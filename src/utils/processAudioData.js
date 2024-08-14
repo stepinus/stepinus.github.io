@@ -11,6 +11,7 @@ const processAudioData = (data) => {
         bass: bass / 255,
         treble: treble / 255,
         intensity: intensity / 255,
+        rawIntensity: intensity
     };
 };
 export default processAudioData;
