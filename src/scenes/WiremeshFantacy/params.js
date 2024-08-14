@@ -58,9 +58,9 @@ export const innerCube = {
   isWaveSizeActive: true,
   waveScale: { value: 1.2, min: 0, max: 5, step: 0.1 },
   waveSizeScale: { value: 0.07, min: 0, max: 0.1, step: 0.001 },
-  waveColor: { value: "#ffffff" },
+  waveColor: { value: "#cfd4ff" },
   baseColor: { value: "#0037ff" },
-  brightness: { value: 1.07, min: 0, max: 10, step: 0.01 },
+  brightness: { value: 1.50, min: 0, max: 10, step: 0.01 },
 };
 
 export const outerCube = {
@@ -78,7 +78,7 @@ export const outerCube = {
   waveSizeScale: { value: 0.05, min: 0, max: 0.1, step: 0.001 },
   waveColor: { value: "#ffffff" },
   baseColor: { value: "#000000" },
-  brightness: { value: 0.33, min: 0, max: 10, step: 0.01 },
+  brightness: { value: 0.35, min: 0, max: 10, step: 0.01 },
 };
 
 export const innerUniforms = {

@@ -3,35 +3,29 @@ uniform float intensity;
 uniform float frequency;
 uniform float amplitude;
 uniform bool isDeformActive;
-
-// Униформы для анимации размера точек
 uniform bool isWaveSizeActive;
 uniform float waveScale;
 uniform float waveSpeed;
 uniform float waveSizeScale;
+uniform float audioIntensity;
+uniform vec3 baseColor;
+uniform vec3 waveColor;
+uniform bool isOrbiting;
 uniform float baseParticleSize;
-
-// audio
-uniform float audioIntensity; // Общая интенсивность звука
-uniform float audioBass; // Интенсивность низких частот
-uniform float audioTreble; // Интенсивность высоких частот
+uniform bool useAlternativeWave;
 
 attribute float size;
 attribute float isPoint;
 
-uniform vec3 baseColor;
-uniform vec3 waveColor;
-//таймер анимации клика
-uniform float clickAnimation;
-
 varying float vIsPoint;
 varying float vGradientFactor;
+varying vec2 vUv;
 varying vec3 vNormal;
 varying float vDeformationFactor;
 varying float vSizeFactor;
 varying float vDisplacement;
 
-uniform bool isOrbiting;
+
 
 const float ORBIT_RADIUS = 0.8;
 const float ORBIT_SPEED = 2.0;
@@ -197,6 +191,10 @@ float cnoise(vec3 P) {
 float sizeNoise(vec3 p) {
     return cnoise(p);
 }
+// Функция для плавного перехода
+float smoothTransition(float x) {
+    return x * x * (3.0 - 2.0 * x);
+}
 
 // Функция для вычисления размера точки на основе шума
 float calculatePointSize(vec3 position) {
@@ -205,12 +203,19 @@ float calculatePointSize(vec3 position) {
 
     return (noiseValue + 1.0) * 0.5 * waveSizeScale + baseParticleSize;
 }
-varying vec2 vUv;
-
+// Константы для контроля анимации
+const float ANIMATION_DURATION = 11.0; // Общая длительность цикла анимации в секундах
+const float RAMP_UP_DURATION = 1.0; // Длительность нарастания деформации
+const float PLATEAU_DURATION = 8.0; // Длительность плато (максимальной деформации)
+const float RAMP_DOWN_DURATION = 1.0; // Длительность спада деформации
+const float REST_DURATION = 0.1; // Длительность покоя перед новым циклом
+const float AUDIO_INFLUENCE = 0.5; // 0.0 - только временная анимация, 1.0 - только аудио-реакция
+const float MIN_DEFORMATION = 0.2; // Минимальная интенсивность деформации в состоянии "покоя"
+const float MAX_DEFORMATION = 1.0; // Максимальная интенсивность деформации
 void main() {
     vUv = uv;
-    vIsPoint = isPoint;
     vNormal = normalMatrix * normal;
+    vIsPoint = isPoint;
     vec3 newPosition = position;
 
     if (isOrbiting) {
@@ -223,14 +228,47 @@ void main() {
         newPosition += orbitOffset;
     }
 
-    // Оригинальная деформация
     if(isDeformActive) {
-        float noiseValue = cnoise(vec3(position.x * frequency + time, position.y * frequency + time, position.z * frequency + time));
-        vec3 deformation = vec3(noiseValue) * sin(time * 2.0) * amplitude * intensity;
-        deformation *= 1.0 + audioIntensity * 14.0; // Умножаем на 14.0 для усиления эффекта
+        float cycleTime = mod(time, ANIMATION_DURATION);
+        float timeBasedIntensity;
+
+        if (cycleTime < RAMP_UP_DURATION) {
+            // Нарастание деформации
+            float t = cycleTime / RAMP_UP_DURATION;
+            timeBasedIntensity = mix(MIN_DEFORMATION, MAX_DEFORMATION, smoothTransition(t));
+        } else if (cycleTime < RAMP_UP_DURATION + PLATEAU_DURATION) {
+            // Плато (максимальная деформация)
+            timeBasedIntensity = MAX_DEFORMATION;
+        } else if (cycleTime < RAMP_UP_DURATION + PLATEAU_DURATION + RAMP_DOWN_DURATION) {
+            // Спад деформации
+            float t = (cycleTime - RAMP_UP_DURATION - PLATEAU_DURATION) / RAMP_DOWN_DURATION;
+            timeBasedIntensity = mix(MAX_DEFORMATION, MIN_DEFORMATION, smoothTransition(t));
+        } else {
+            // "Покой" с минимальной деформацией
+            timeBasedIntensity = MIN_DEFORMATION;
+        }
+
+        // Добавляем небольшую пульсацию в состоянии "покоя"
+        float pulseIntensity = sin(time * 2.0) * 0.5 + 0.5;
+        timeBasedIntensity = mix(timeBasedIntensity, timeBasedIntensity * pulseIntensity, 0.2);
+
+        // Комбинируем временную анимацию с аудио-реакцией
+        float combinedIntensity = mix(timeBasedIntensity, audioIntensity, AUDIO_INFLUENCE);
+
+        float noiseValue = cnoise(vec3(position.x * frequency + time,
+        position.y * frequency + time,
+        position.z * frequency + time));
+
+        vec3 deformation = vec3(noiseValue) * combinedIntensity * amplitude * intensity;
+
+        // Добавляем дополнительное влияние аудио на деформацию
+        deformation *= 1.0 + audioIntensity * 5.0;
+
         newPosition += deformation;
 
-        vDeformationFactor = (noiseValue + 1.0) * 0.5; // Нормализуем значение шума
+        vDeformationFactor = (noiseValue + 1.0) * 0.5 * combinedIntensity;
+        vDisplacement = noiseValue * combinedIntensity * amplitude * intensity;
+
     } else {
         vDeformationFactor = 0.0;
     }
@@ -243,27 +281,50 @@ void main() {
     // Устанавливаем размер точки и вычисляем градиент, если это точка
     if(isPoint > 0.5) {
         if(isWaveSizeActive) {
-            // Здесь происходит изменение размера точек
             float waveTime = time * waveSpeed;
-            vec3 noisePosition = vec3(position.x * waveScale + waveTime, position.y * waveScale + waveTime, position.z * waveScale + waveTime);
-            float noiseValue = cnoise(noisePosition);
+            vec3 noisePosition;
+            float noiseValue;
+            float waveEffect;
 
-            // Вычисляем размер точки на основе шума
-            float pointSize = baseParticleSize + waveSizeScale * (noiseValue * 0.5 + 0.5);
-            pointSize *= 1.0 + audioIntensity * 3.0; // Умножаем на 3.0 для усиления эффекта
+            if(useAlternativeWave) {
+                // Альтернативная волна (новая версия)
+                noisePosition = vec3(
+                position.x * waveScale * 0.1 + waveTime,
+                position.y * waveScale * 0.1 + waveTime,
+                position.z * waveScale * 0.1 + waveTime
+                );
+                noiseValue = cnoise(noisePosition);
+                float threshold = 0.2;
+                waveEffect = smoothstep(threshold, 1.0, abs(noiseValue));
+            } else {
+                // Оригинальная волна
+                noisePosition = vec3(
+                position.x * waveScale + waveTime,
+                position.y * waveScale + waveTime,
+                position.z * waveScale + waveTime
+                );
+                noiseValue = cnoise(noisePosition);
+                waveEffect = noiseValue * 0.5 + 0.5;
+            }
+
+            // Вычисляем размер точки на основе эффекта волны
+            float pointSize = baseParticleSize + waveSizeScale * waveEffect;
+            pointSize *= 1.0 + audioIntensity * (useAlternativeWave ? 1.5 : 2.0);
 
             // Применяем размер точки с учетом перспективы
             gl_PointSize = pointSize * (300.0 / -mvPosition.z);
 
-            vSizeFactor = (noiseValue * 0.5 + 0.5);
+            vSizeFactor = waveEffect;
             vGradientFactor = vSizeFactor;
         } else {
             vSizeFactor = 0.0;
-            gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + audioIntensity * 3.0); // Добавляем влияние audioIntensity
+            gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + audioIntensity * 3.0);
             vGradientFactor = 0.0;
         }
     } else {
         vSizeFactor = 0.0;
         vGradientFactor = 0.0;
     }
+    //    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    //    gl_PointSize = 10.0; // Установите фиксированный размер точек для отладки
 }

@@ -16,36 +16,6 @@ import fragmentShader from "./shaders/fragment.glsl";
 import {createCubeLines, createCubePoints} from "./utils";
 import {statusMap, useStore} from "../../../store.js";
 
-// Custom hook for creating cube geometry
-const getCubeGeometry = (segments, cubeSize, particleSize, isOuter) => {
-    const geometry = new THREE.BufferGeometry();
-    const {
-        particles,
-        sizes,
-        isPoint: pointIsPoint,
-    } = createCubePoints(segments, cubeSize, particleSize);
-    const {lines, isPoint: lineIsPoint} = createCubeLines(segments, cubeSize);
-
-    geometry.setAttribute(
-        "position",
-        new THREE.Float32BufferAttribute([...particles, ...lines], 3)
-    );
-    geometry.setAttribute(
-        "size",
-        new THREE.Float32BufferAttribute(
-            [...sizes, ...new Array(lines.length / 3).fill(1)],
-            1
-        )
-    );
-    geometry.setAttribute(
-        "isPoint",
-        new THREE.Float32BufferAttribute([...pointIsPoint, ...lineIsPoint], 1)
-    );
-
-    return geometry;
-};
-
-// Custom shader material
 const CubeMaterial = shaderMaterial(
     {
         pointTexture: null,
@@ -67,12 +37,67 @@ const CubeMaterial = shaderMaterial(
         audioTreble: 0,
         clickAnimation: 0,
         isOrbiting: false,
+        useAlternativeWave: { value: false },
     },
     vertexShader,
     fragmentShader
 );
 
 extend({CubeMaterial});
+
+// Custom hook for creating cube geometry
+// Новая функция для создания индексной геометрии куба
+const createIndexedCubeGeometry = (segments, cubeSize, particleSize) => {
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const indices = [];
+    const sizes = [];
+    const isPoint = [];
+
+    const segmentSize = cubeSize / segments;
+
+    const addFace = (u, v, w, uDir, vDir, fixed) => {
+        const baseIndex = positions.length / 3;
+        for (let i = 0; i <= segments; i++) {
+            for (let j = 0; j <= segments; j++) {
+                const x = fixed.x + uDir.x * i * segmentSize + vDir.x * j * segmentSize;
+                const y = fixed.y + uDir.y * i * segmentSize + vDir.y * j * segmentSize;
+                const z = fixed.z + uDir.z * i * segmentSize + vDir.z * j * segmentSize;
+
+                positions.push(x, y, z);
+                sizes.push(particleSize);
+                isPoint.push(1);
+
+                if (i < segments && j < segments) {
+                    const index = baseIndex + i * (segments + 1) + j;
+                    indices.push(
+                        index, index + 1, index + segments + 1,
+                        index + segments + 1, index + 1, index + segments + 2
+                    );
+                }
+            }
+        }
+    };
+
+    // Добавляем грани куба
+    const halfSize = cubeSize / 2;
+    addFace(1, 0, 0, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(halfSize, -halfSize, -halfSize));
+    addFace(1, 0, 0, new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(-halfSize, -halfSize, -halfSize));
+    addFace(0, 1, 0, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(-halfSize, halfSize, -halfSize));
+    addFace(0, 1, 0, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(-halfSize, -halfSize, -halfSize));
+    addFace(0, 0, 1, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(-halfSize, -halfSize, halfSize));
+    addFace(0, 0, 1, new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0), new THREE.Vector3(-halfSize, -halfSize, -halfSize));
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    geometry.setAttribute('isPoint', new THREE.Float32BufferAttribute(isPoint, 1));
+    geometry.setIndex(indices);
+
+    return geometry;
+};
+
+
+
 
 const CubeComponent = ({
                            isOuter = false,
@@ -91,10 +116,11 @@ const CubeComponent = ({
                                baseColor = [1, 1, 1],
                                waveColor = [1, 1, 1],
                                brightness = 0.8,
+                               useAlternativeWave=false,
                            },
                        }) => {
     const geometry = useMemo(() => {
-        return getCubeGeometry(segments, cubeSize, particleSize);
+        return createIndexedCubeGeometry(segments, cubeSize, particleSize);
     }, [segments, cubeSize, particleSize]);
 
     const materialRef = useRef();
@@ -118,6 +144,7 @@ const CubeComponent = ({
         uniforms.baseColor.value = new THREE.Color(baseColor);
         uniforms.waveColor.value = new THREE.Color(waveColor);
         uniforms.brightness.value = brightness;
+        uniforms.useAlternativeWave.value = !isOuter;
     };
 
     const updateAudioMaterial = (uniforms) => {
@@ -133,7 +160,7 @@ const CubeComponent = ({
             const {intensity} = useStore.getState().audioData;
             uniforms.audioIntensity.value = intensity;
         }
-     }
+    }
     useFrame((state, delta) => {
 
         if (materialRef.current) {
@@ -146,22 +173,24 @@ const CubeComponent = ({
         }
     });
     return (
-            <group>
-                <points geometry={geometry} ref={meshRef}>
-                    <cubeMaterial
-                        ref={materialRef}
-                        pointTexture={sparkTex}
-                        baseParticleSize={particleSize}
-                    />
-                </points>
-                <lineSegments geometry={geometry} castShadow>
-                    <cubeMaterial
-                        ref={materialRef2}
-                        pointTexture={sparkTex}
-                        baseParticleSize={particleSize}
-                    />
-                </lineSegments>
-            </group>
+        <group>
+            <points geometry={geometry} ref={meshRef}>
+                <cubeMaterial
+                    ref={materialRef}
+                    pointTexture={sparkTex}
+                    baseParticleSize={particleSize}
+                    depthWrite={false}
+                />
+            </points>
+            <lineSegments geometry={geometry} castShadow>
+                <cubeMaterial
+                    ref={materialRef2}
+                    pointTexture={sparkTex}
+                    baseParticleSize={particleSize}
+                    depthWrite={false}
+                />
+            </lineSegments>
+        </group>
     );
 };
 

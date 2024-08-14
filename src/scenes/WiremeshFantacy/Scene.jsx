@@ -1,4 +1,3 @@
-
 import {Canvas, useLoader, useThree} from "@react-three/fiber";
 import {
     Bloom,
@@ -6,12 +5,14 @@ import {
     Noise,
     Vignette,
     SMAA,
+
 } from "@react-three/postprocessing";
 import {innerCube, outerCube} from "./params";
 import * as THREE from "three";
 import {useControls} from "leva";
 import {Suspense} from "react";
 import WireCube from "./WireCube/Wirecube2";
+import {OrbitControls} from "@react-three/drei";
 
 
 const DEFAULT_CAMERA_POSITION = {
@@ -41,51 +42,64 @@ const Scene = () => {
 
         <Canvas
             shadows
-            gl={(canvas) =>
-                new THREE.WebGLRenderer({canvas, antialias: true, alpha: true})
-            }
+            gl={(canvas) => {
+                const renderer = new THREE.WebGLRenderer({
+                    canvas,
+                    antialias: true,
+                    alpha: true,
+                    logarithmicDepthBuffer: true
+                })
+                renderer.outputEncoding = THREE.sRGBEncoding;
+                renderer.toneMapping = THREE.LinearToneMapping;
+                renderer.toneMappingExposure = 0.5;
+                return renderer
+            }}
             onCreated={({camera}) => {
                 camera.position.set(0, 0, 23);
                 camera.rotation.set(0, 0, 0);
             }}
             camera={{
                 fov: 75,
-                near: 1,
-                far: 100,
+                near: 15,
+                far: 50,
             }}
-        >
+        ><OrbitControls/>
             <Suspense fallback={null}>
-                {/*<AudioSetup/>*/}
+
+
+                <directionalLight
+                    color={'#ffffff'}
+                    position={[0, -80, 40]}
+                    intensity={1}/>
+                <ambientLight intensity={0.5} color={'#ffffff'}
+                />
+                <mesh
+                    rotation-y={(-45 * Math.PI) / 180}
+                    rotation-x={(30 * Math.PI) / 180}>
+                    <WireCube settings={inner}/>
+                    <WireCube
+                        settings={outer}
+                        isOuter
+                    />
+                </mesh>
+                {/*<mesh*/}
+                {/*    position={[0, 0, -20]}*/}
+                {/*>*/}
+                {/*    <planeGeometry args={[1000, 1000]} setDrawRange={100}/>*/}
+                {/*    <meshPhongMaterial color="#111111"/>*/}
+                {/*</mesh>*/}
                 <EffectComposer disableNormalPass>
-
-
-                    <directionalLight
-                        position={[0, -80, 40]}
-                        intensity={1}/>
-                    <ambientLight intensity={0.5}/>
-                    <mesh
-                        rotation-y={(-45 * Math.PI) / 180}
-                        rotation-x={(30 * Math.PI) / 180}>
-                        <WireCube settings={inner}/>
-                        <WireCube
-                            settings={outer}
-                            isOuter
-                        />
-                    </mesh>
-                    <mesh
-                        position={[0, 0, -20]}
-                    >
-                        <planeGeometry args={[1000, 1000]} setDrawRange={100}/>
-                        <meshPhongMaterial color="#111111"/>
-                    </mesh>
                     <Bloom
                         luminanceThreshold={bloom.bloomLuminanceThreshold}
                         intensity={bloom.bloomIntensity}
                         bloomRadius={bloom.bloomRadius}
                         levels={10}
                         height={50}
-                        Ï/>
-                    <SMAA/>
+                    />
+                    <SMAA
+                        preset={2} // Попробуйте значения от 0 до 3
+                        edgeDetectionMode={2} // 0: luma, 1: color, 2: depth
+                        edgeDetectionThreshold={0.01}/>
                 </EffectComposer>
             </Suspense>
         </Canvas>
