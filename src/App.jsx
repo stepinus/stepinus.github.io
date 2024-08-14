@@ -406,21 +406,21 @@ const App = () => {
                 flat
                 hideTitleBar
                 collapsed
-                hidden={false}
+                hidden={true}
             />
             <Mesh/>
             <div className={styles.controls_container}>
-                {status === statusMap.isIdle && (
+                {status === statusMap.isIdle && !autoMode && (
                     <button className={styles.round} onClick={startRecording}>
                         <box-icon name='circle' type='solid' color='red' size="md"></box-icon>
                     </button>
                 )}
-                {status === statusMap.isRecording && (
+                {status === statusMap.isRecording && !autoMode && (
                     <button className={styles.round} onClick={stopRecording}>
                         <box-icon name='stop' color='red' size="lg"></box-icon>
                     </button>
                 )}
-                {status === statusMap.isWaitingForResponse && (
+                {status === statusMap.isWaitingForResponse && !autoMode && (
                     <button className={styles.round} onClick={stopRecording}>
                         <box-icon name='dots-horizontal-rounded' color="white"></box-icon>
                     </button>
