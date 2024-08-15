@@ -63,7 +63,7 @@ const Scene = () => {
                 near: 15,
                 far: 50,
             }}
-        ><OrbitControls/>
+        >
             <Suspense fallback={null}>
 
 
