@@ -424,7 +424,7 @@ const App = () => {
                 flat
                 hideTitleBar
                 collapsed
-                hidden={false}
+                hidden={true}
             />
             <Mesh/>
             <div className={styles.controls_container}>
