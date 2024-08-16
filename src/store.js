@@ -21,6 +21,10 @@ export const useStore = create((set, get) => ({
     hasTriggeredBelowThreshold:false,
     aboveThresholdDelay: 300,
     belowThresholdDelay: 2000,
+    outerSegments: 88, // начальное значение
+    innerSegments:130,
+    setInnerSegments: (value) => set({ innerSegments: value }),
+    setOuterSegments: (value) => set({ outerSegments: value }),
     setAboveThresholdDelay: (delay) => set({ aboveThresholdDelay: delay }),
     setBelowThresholdDelay: (delay) => set({ belowThresholdDelay: delay }),
     setHasTriggeredAboveThreshold:(status)=>set((state)=>({hasTriggeredAboveThreshold:status})),

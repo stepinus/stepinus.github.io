@@ -43,6 +43,8 @@ const App = () => {
     const setAboveThresholdDelay = useStore((state) => state.setAboveThresholdDelay);
     const setBelowThresholdDelay = useStore((state) => state.setBelowThresholdDelay);
     const setAudioData = useStore((state) => state.setAudioData);
+    const setOuterSegments = useStore((state) => state.setOuterSegments);
+    const setInnerSegments = useStore((state) => state.setInnerSegments);
 
     const checkIntensityThreshold = () => {
         const currentStatus = useStore.getState().status;
@@ -250,6 +252,22 @@ const App = () => {
         } else if (event.code === 'Semicolon') {
             setBelowThresholdDelay(Math.max(0, belowThresholdDelay - DELAY_STEP));
             toast(`Задержка ниже порога уменьшена до ${Math.max(0, belowThresholdDelay - DELAY_STEP)}мс`);
+        } else if (event.code === 'Comma') {
+            const outerSegments = useStore.getState().outerSegments;
+        setOuterSegments(Math.max(0, outerSegments - 5));
+        toast(`Внешние сегменты уменьшены до ${Math.max(0, outerSegments - 5)}`);
+        } else if (event.code === 'Period') {
+            const outerSegments = useStore.getState().outerSegments;
+            setOuterSegments(outerSegments + 5);
+        toast(`Внешние сегменты увеличены до ${outerSegments + 1}`);
+        }else if (event.code === 'KeyN') {
+            const innerSegments = useStore.getState().innerSegments;
+            setInnerSegments(Math.max(0, innerSegments - 5));
+            toast(`Внешние сегменты уменьшены до ${Math.max(0, innerSegments - 5)}`);
+        } else if (event.code === 'KeyM') {
+            const innerSegments = useStore.getState().innerSegments;
+            setInnerSegments(innerSegments + 5);
+            toast(`Внешние сегменты увеличены до ${innerSegments + 1}`);
         }
     };
 
@@ -406,7 +424,7 @@ const App = () => {
                 flat
                 hideTitleBar
                 collapsed
-                hidden={true}
+                hidden={false}
             />
             <Mesh/>
             <div className={styles.controls_container}>

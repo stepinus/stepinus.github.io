@@ -119,9 +119,15 @@ const CubeComponent = ({
                                useAlternativeWave=false,
                            },
                        }) => {
+
+    const outerSegments = useStore((state) => state.outerSegments);
+    const innerSegments = useStore((state) => state.innerSegments);
+
+
     const geometry = useMemo(() => {
-        return createIndexedCubeGeometry(segments, cubeSize, particleSize);
-    }, [segments, cubeSize, particleSize]);
+        const segmentsToUse = isOuter ? outerSegments : innerSegments;
+        return createIndexedCubeGeometry(segmentsToUse, cubeSize, particleSize);
+    }, [isOuter, outerSegments,innerSegments, cubeSize, particleSize]);
 
     const materialRef = useRef();
     const materialRef2 = useRef();
