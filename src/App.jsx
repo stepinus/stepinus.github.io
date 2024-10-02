@@ -8,6 +8,7 @@ import { Leva } from "leva";
 import MicRecorder from '@jmd01/mic-recorder-to-mp3';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import audio from './hello.mp3'
 
 const DELAY_STEP = 100; // Шаг изменения задержки в миллисекундах
 const USE_LIBRARY_FALLBACK = true; // Константа для переключения между библиотекой и mp4
@@ -157,52 +158,35 @@ const App = () => {
     }
 
     const sendAudioToAPI = async (blob, mimeType) => {
-        const formData = new FormData();
-        formData.append('userID', useStore.getState().userId);
-        formData.append('file', blob, `audio.${mimeType.split('/')[1]}`);
-
+        setStatus(statusMap.isWaitingForResponse);
+        
+        // Имитация задержки сервера
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
         try {
-            const response = await fetch((!import.meta.env.DEV ? '/api/recognition-audio/' : '/api/recognition-audio/'), {
-                method: 'POST',
-                body: formData,
-            });
-
+            const response = await fetch(audio);
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                throw new Error('Не удалось загрузить аудиофайл');
             }
-
-            const reader = response.body.getReader();
-            const chunks = [];
-
-            async function read() {
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-                    chunks.push(value);
-                }
-            }
-
-            await read();
-
-            const audioBlob = new Blob(chunks, { type: 'audio/mpeg' });
-            const arrayBuffer = await audioBlob.arrayBuffer();
-
+            
+            const arrayBuffer = await response.arrayBuffer();
+            
             initAudio();
-
+            
             if (!audioContext.current) initAudio();
-
+            
             const audioBuffer = await audioContext.current.decodeAudioData(arrayBuffer);
-
+            
             const source = audioContext.current.createBufferSource();
             source.buffer = audioBuffer;
-
+            
             source.connect(gainNode.current);
             gainNode.current.connect(analyser.current);
             analyser.current.connect(audioContext.current.destination);
-
+            
             setStatus(statusMap.isSpeaking);
             updateAudioData();
-
+            
             source.onended = () => {
                 setStatus(statusMap.isIdle);
                 setAudioData(null);
@@ -212,11 +196,10 @@ const App = () => {
                     checkIntensityThreshold();
                 }
             };
-
+            
             source.start();
-
         } catch (error) {
-            console.error('Error sending audio to API:', error);
+            console.error('Ошибка воспроизведения аудио:', error);
             setStatus(statusMap.isIdle);
         }
     };

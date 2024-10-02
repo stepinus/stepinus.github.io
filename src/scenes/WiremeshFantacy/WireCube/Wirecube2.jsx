@@ -163,7 +163,7 @@ const CubeComponent = ({
         const status = useStore.getState().status;
         if (!isOuter && status === statusMap.isRecording) {
             const {intensity} = useStore.getState().audioData;
-            uniforms.audioIntensity.value = intensity;
+            uniforms.audioIntensity.value = intensity*1.5;
         }
         if (status !== statusMap.isRecording && status !== statusMap.isSpeaking) {
             uniforms.audioIntensity.value = 0;
